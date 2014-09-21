@@ -12,13 +12,17 @@ function mmread(filename::String, infoonly::Bool=false)
 #      If infoonly is true information on the size and structure is
 #      returned.
     mmfile = open(filename,"r")
+
+    #Read first line
     firstline = chomp(readline(mmfile))
     tokens = split(firstline)
     length(tokens)==5 || throw(ParseError(string("Not enough words on first line: ", ll)))
     tokens[1]=="%%MatrixMarket" || throw(ParseError(string("Not a valid MatrixMarket header:", ll)))
     (head1, rep, field, symm) = map(lowercase, tokens[2:5])
     head1=="matrix" || throw(ValueError("Unknown MatrixMarket data type: $head1 (only \"matrix\" is supported)"))
-    field=="real" || throw(ValueError("non-float fields not yet allowed"))
+    eltype = field=="real"    ? Float64 :
+             field=="complex" ? Complex128 :
+             throw(ValueError("Unsupported field $field (only real and complex are supported)"))
 
     ll   = readline(mmfile)         # Read through comments, ignoring them
     while length(chomp(ll))==0 || (length(ll) > 0 && ll[1] == '%') ll = readline(mmfile) end
@@ -31,12 +35,13 @@ function mmread(filename::String, infoonly::Bool=false)
     if rep == "coordinate"
         rr = Array(Int, entries)
         cc = Array(Int, entries)
-        xx = Array(Float64, entries)
+        xx = Array(eltype, entries)
         for i in 1:entries
             flds = split(readline(mmfile))
             rr[i] = int32(flds[1])
             cc[i] = int32(flds[2])
-            xx[i] = float64(flds[3])
+            xx[i] = eltype==Complex128 ? Complex128(float64(flds[3]), float64(flds[4])) : 
+	                                            float64(flds[3])
         end
         return sparse(rr, cc, xx, rows, cols)
     end
