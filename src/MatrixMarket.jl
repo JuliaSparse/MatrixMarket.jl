@@ -44,8 +44,8 @@ function mmread(filename::String, infoonly::Bool=false)
         xx = Array(eltype, entries)
         for i in 1:entries
             flds = split(readline(mmfile))
-            rr[i] = int32(flds[1])
-            cc[i] = int32(flds[2])
+            rr[i] = int(flds[1])
+            cc[i] = int(flds[2])
             xx[i] = eltype==Complex128 ? Complex128(float64(flds[3]), float64(flds[4])) :
                     float64(flds[3])
         end
