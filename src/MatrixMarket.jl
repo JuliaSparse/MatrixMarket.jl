@@ -48,7 +48,8 @@ function mmread(filename::String, infoonly::Bool=false)
             rr[i] = int(flds[1])
             cc[i] = int(flds[2])
             xx[i] = eltype==Complex128 ? Complex128(float64(flds[3]), float64(flds[4])) :
-                    float64(flds[3])
+                    eltype==Float64 ? float64(flds[3]) :
+                    true
         end
         return symlabel(sparse(rr, cc, xx, rows, cols))
     end
