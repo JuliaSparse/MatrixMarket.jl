@@ -17,15 +17,16 @@ function mmread(filename::String, infoonly::Bool=false)
     length(tokens)==5 || throw(ParseError(string("Not enough words on first line: ", ll)))
     tokens[1]=="%%MatrixMarket" || throw(ParseError(string("Not a valid MatrixMarket header:", ll)))
     (head1, rep, field, symm) = map(lowercase, tokens[2:5])
-    head1=="matrix" || throw(ValueError("Unknown MatrixMarket data type: $head1 (only \"matrix\" is supported)"))
+    head1=="matrix" || throw(ParseError("Unknown MatrixMarket data type: $head1 (only \"matrix\" is supported)"))
     eltype = field=="real"    ? Float64 :
              field=="complex" ? Complex128 :
-             throw(ValueError("Unsupported field $field (only real and complex are supported)"))
+             field=="pattern" ? Bool :
+             throw(ParseError("Unsupported field $field (only real and complex are supported)"))
     symlabel = symm=="general" ? identity :
                symm=="symmetric" ? Symmetric :
                symm=="hermitian" ? Hermitian :
                symm=="skew-symmetric" ? skewsymmetric! :
-               throw(ValueError("Unknown matrix symmetry: $symm (only general, symmetric, skew-symmetric and hermitian are supported)"))
+               throw(ParseError("Unknown matrix symmetry: $symm (only general, symmetric, skew-symmetric and hermitian are supported)"))
 
     #Skip all comments and empty lines
     ll   = readline(mmfile)
