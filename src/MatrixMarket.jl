@@ -1,6 +1,6 @@
 module MatrixMarket
 
-function mmread(filename::ASCIIString, infoonly::Bool=false)
+function mmread(filename::String, infoonly::Bool=false)
 #      Reads the contents of the Matrix Market file 'filename'
 #      into a matrix, which will be either sparse or dense,
 #      depending on the Matrix Market format indicated by
