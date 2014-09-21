@@ -3,11 +3,18 @@ compiler:
   - clang
 notifications:
   email: false
+env:
+  matrix: 
+    - JULIAVERSION="juliareleases" 
+    - JULIAVERSION="julianightlies" 
 before_install:
   - sudo add-apt-repository ppa:staticfloat/julia-deps -y
-  - sudo add-apt-repository ppa:staticfloat/julianightlies -y
+  - sudo add-apt-repository ppa:staticfloat/${JULIAVERSION} -y
   - sudo apt-get update -qq -y
   - sudo apt-get install libpcre3-dev julia -y
 script:
   - julia -e 'Pkg.init(); run(`ln -s $(pwd()) $(Pkg.dir("MatrixMarket"))`); Pkg.pin("MatrixMarket"); Pkg.resolve()'
-  - julia -e 'using MatrixMarket; @assert isdefined(:MatrixMarket); @assert typeof(MatrixMarket) === Module'
+  - if [ $JULIAVERSION = "julianightlies" ]; then julia --code-coverage test/runtests.jl; fi
+  - if [ $JULIAVERSION = "juliareleases" ]; then julia test/runtests.jl; fi
+after_success:
+  - if [ $JULIAVERSION = "julianightlies" ]; then julia -e 'cd(Pkg.dir("MatrixMarket")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'; fi
