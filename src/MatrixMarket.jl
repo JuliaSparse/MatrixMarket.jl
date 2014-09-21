@@ -22,7 +22,7 @@ function mmread(filename::ASCIIString, infoonly::Bool=false)
     if field != "real" error("non-float fields not yet allowed") end
 
     ll   = readline(mmfile)         # Read through comments, ignoring them
-    while length(ll) > 0 && ll[1] == '%' ll = readline(mmfile) end
+    while length(chomp(ll))==0 || (length(ll) > 0 && ll[1] == '%') ll = readline(mmfile) end
     dd     = int(split(ll))         # Read dimensions
     rows   = dd[1]
     cols   = dd[2]
