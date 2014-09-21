@@ -26,7 +26,8 @@ function mmread(filename::String, infoonly::Bool=false)
     symlabel = symm=="general" ? identity :
                symm=="symmetric" ? Symmetric :
 	       symm=="hermitian" ? Hermitian :
-	       throw(ValueError("Unsupported matrix symmetry $symm (only general, symmetric and hermitian are supported)"))
+	       symm=="skew-symmetric" ? skewsymmetric! :
+	       throw(ValueError("Unknown matrix symmetry: $symm (only general, symmetric, skew-symmetric and hermitian are supported)"))
 
     ll   = readline(mmfile)         # Read through comments, ignoring them
     while length(chomp(ll))==0 || (length(ll) > 0 && ll[1] == '%') ll = readline(mmfile) end
@@ -50,6 +51,14 @@ function mmread(filename::String, infoonly::Bool=false)
         return symlabel(sparse(rr, cc, xx, rows, cols))
     end
     symlabel(reshape([float64(readline(mmfile)) for i in 1:entries], (rows,cols)))
+end
+
+#Hack to represent skew-symmetric matrix as an ordinary matrix with duplicated elements
+function skewsymmetric!(M::AbstractMatrix)
+    for i = 1:size(M,1), j = 1:size(M,2)
+         M[i,j]==0 || (M[j,i] = -M[i,j])
+    end
+    M
 end
 
 end # module
