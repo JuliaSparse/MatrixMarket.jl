@@ -1,16 +1,14 @@
 module MatrixMarket
 
 function mmread(filename::String, infoonly::Bool=false)
-#      Reads the contents of the Matrix Market file 'filename'
-#      into a matrix, which will be either sparse or dense,
-#      depending on the Matrix Market format indicated by
-#      'coordinate' (coordinate sparse storage), or
-#      'array' (dense array storage).  The data will be duplicated
-#      as appropriate if symmetry is indicated in the header. (Not yet
-#      implemented).
+#   Reads the contents of the Matrix Market file 'filename' into a matrix,
+#   which will be either sparse or dense, depending on the Matrix Market format
+#   indicated by 'coordinate' (coordinate sparse storage), or 'array' (dense
+#   array storage).
 #
-#      If infoonly is true information on the size and structure is
-#      returned.
+#   If infoonly is true (default: false), only information on the size and
+#   structure is returned from reading the header. The actual data for the
+#   matrix elements are not parsed.
     mmfile = open(filename,"r")
 
     #Read first line
@@ -25,14 +23,17 @@ function mmread(filename::String, infoonly::Bool=false)
              throw(ValueError("Unsupported field $field (only real and complex are supported)"))
     symlabel = symm=="general" ? identity :
                symm=="symmetric" ? Symmetric :
-	       symm=="hermitian" ? Hermitian :
-	       symm=="skew-symmetric" ? skewsymmetric! :
-	       throw(ValueError("Unknown matrix symmetry: $symm (only general, symmetric, skew-symmetric and hermitian are supported)"))
+               symm=="hermitian" ? Hermitian :
+               symm=="skew-symmetric" ? skewsymmetric! :
+               throw(ValueError("Unknown matrix symmetry: $symm (only general, symmetric, skew-symmetric and hermitian are supported)"))
 
-    ll   = readline(mmfile)         # Read through comments, ignoring them
+    #Skip all comments and empty lines
+    ll   = readline(mmfile)
     while length(chomp(ll))==0 || (length(ll) > 0 && ll[1] == '%') ll = readline(mmfile) end
-    dd     = int(split(ll))         # Read dimensions
-    length(dd) >= (rep == "coordinate" ? 3 : 2) || throw(ParseError(string("Could not read in rows, columns, entries from line: ", ll)))
+
+    #Read matrix dimensions (and number of entries) from first non-comment line
+    dd     = int(split(ll))
+    length(dd) >= (rep == "coordinate" ? 3 : 2) || throw(ParseError(string("Could not read in matrix dimensions from line: ", ll)))
     rows   = dd[1]
     cols   = dd[2]
     entries = rep == "coordinate" ? dd[3] : rows * cols
@@ -45,8 +46,8 @@ function mmread(filename::String, infoonly::Bool=false)
             flds = split(readline(mmfile))
             rr[i] = int32(flds[1])
             cc[i] = int32(flds[2])
-            xx[i] = eltype==Complex128 ? Complex128(float64(flds[3]), float64(flds[4])) : 
-	                                            float64(flds[3])
+            xx[i] = eltype==Complex128 ? Complex128(float64(flds[3]), float64(flds[4])) :
+                    float64(flds[3])
         end
         return symlabel(sparse(rr, cc, xx, rows, cols))
     end
@@ -62,4 +63,3 @@ function skewsymmetric!(M::AbstractMatrix)
 end
 
 end # module
-
