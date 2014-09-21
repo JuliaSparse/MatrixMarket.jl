@@ -24,6 +24,7 @@ function mmread(filename::ASCIIString, infoonly::Bool=false)
     ll   = readline(mmfile)         # Read through comments, ignoring them
     while length(chomp(ll))==0 || (length(ll) > 0 && ll[1] == '%') ll = readline(mmfile) end
     dd     = int(split(ll))         # Read dimensions
+    length(dd) >= (rep == "coordinate" ? 3 : 2) || throw(ParseError(string("Could not read in rows, columns, entries from line: ", ll)))
     rows   = dd[1]
     cols   = dd[2]
     entries = rep == "coordinate" ? dd[3] : rows * cols
