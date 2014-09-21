@@ -12,14 +12,13 @@ function mmread(filename::ASCIIString, infoonly::Bool=false)
 #      If infoonly is true information on the size and structure is
 #      returned.
     mmfile = open(filename,"r")
-    tokens = split(chomp(readline(mmfile)))
-    if length(tokens) != 5 error("Not enough words on header line") end
-    if tokens[1] != "%%MatrixMarket" error("Not a valid MatrixMarket header.") end
+    firstline = chomp(readline(mmfile))
+    tokens = split(firstline)
+    length(tokens)==5 || throw(ParseError(string("Not enough words on first line: ", ll)))
+    tokens[1]=="%%MatrixMarket" || throw(ParseError(string("Not a valid MatrixMarket header:", ll)))
     (head1, rep, field, symm) = map(lowercase, tokens[2:5])
-    if head1 != "matrix"
-        error("This seems to be a MatrixMarket $head1 file, not a MatrixMarket matrix file")
-    end
-    if field != "real" error("non-float fields not yet allowed") end
+    head1=="matrix" || throw(ValueError("Unknown MatrixMarket data type: $head1 (only \"matrix\" is supported)"))
+    field=="real" || throw(ValueError("non-float fields not yet allowed"))
 
     ll   = readline(mmfile)         # Read through comments, ignoring them
     while length(chomp(ll))==0 || (length(ll) > 0 && ll[1] == '%') ll = readline(mmfile) end
