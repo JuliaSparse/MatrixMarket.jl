@@ -1,14 +1,14 @@
 #Attempts to read every .mtx file in the test directory
 using MatrixMarket
 
-include("dl-matrixmarket.jl")
+#include("dl-matrixmarket.jl")
 
 num_errors = 0
 num_pass = 0
-for filename in readdir()
+for filename in readdir("../src/data/")
     endswith(filename, ".mtx") || continue
     try
-        A = MatrixMarket.mmread(filename)
+        A = MatrixMarket.mmread("../src/data/$filename")
         println(filename, " : ", typeof(A), "  ", size(A))
         num_pass += 1
     catch err

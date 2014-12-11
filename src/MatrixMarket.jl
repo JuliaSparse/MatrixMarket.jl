@@ -23,8 +23,8 @@ function mmread(filename::String, infoonly::Bool=false)
              field=="pattern" ? Bool :
              throw(ParseError("Unsupported field $field (only real and complex are supported)"))
     symlabel = symm=="general" ? identity :
-               symm=="symmetric" ? Symmetric :
-               symm=="hermitian" ? Hermitian :
+               symm=="symmetric" ? identity : # Currently `Symmetric{T}` has no method matching Symmetric{T}(::SparseMatrixCSC{Bool,Int64}
+               symm=="hermitian" ? identity : # Currently `Hermitian{T}` has no method matching Hermitian{T}(::SparseMatrixCSC{Complex{Float64},Int64})
                symm=="skew-symmetric" ? skewsymmetric! :
                throw(ParseError("Unknown matrix symmetry: $symm (only general, symmetric, skew-symmetric and hermitian are supported)"))
 
