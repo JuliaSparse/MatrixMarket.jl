@@ -23,8 +23,8 @@ function mmread(filename::String, infoonly::Bool=false)
              field=="pattern" ? Bool :
              throw(ParseError("Unsupported field $field (only real and complex are supported)"))
     symlabel = symm=="general" ? identity :
-               symm=="symmetric" ? Symmetric :
-               symm=="hermitian" ? Hermitian :
+               symm=="symmetric" ? Symmetric : 
+               symm=="hermitian" ? Hermitian : 
                symm=="skew-symmetric" ? skewsymmetric! :
                throw(ParseError("Unknown matrix symmetry: $symm (only general, symmetric, skew-symmetric and hermitian are supported)"))
 
@@ -51,7 +51,11 @@ function mmread(filename::String, infoonly::Bool=false)
                     eltype==Float64 ? float64(flds[3]) :
                     true
         end
-        return symlabel(sparse(rr, cc, xx, rows, cols))
+        if VERSION < v"0.4.0-dev+1827"
+            return  sparse(rr, cc, xx, rows, cols)
+        else
+            return symlabel(sparse(rr, cc, xx, rows, cols))
+        end
     end
     symlabel(reshape([float64(readline(mmfile)) for i in 1:entries], (rows,cols)))
 end

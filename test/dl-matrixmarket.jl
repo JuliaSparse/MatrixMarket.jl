@@ -16,7 +16,7 @@ function gunzip(fname)
 end
 
 #Download and parse master list of matrices
-isfile("matrices.html") || download("math.nist.gov/MatrixMarket/matrices.html", "matrices.html")
+isfile("matrices.html") || download("http://math.nist.gov/MatrixMarket/matrices.html", "matrices.html")
 matrixmarketdata = {}
 open("matrices.html") do f
    for line in readlines(f)
