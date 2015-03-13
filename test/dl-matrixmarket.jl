@@ -22,7 +22,7 @@ if !isfile("matrices.html")
     download("math.nist.gov/MatrixMarket/matrices.html", "matrices.html")
 end
 
-matrixmarketdata = []
+matrixmarketdata = Any[]
 open("matrices.html") do f
    for line in readlines(f)
        if contains(line, """<A HREF="/MatrixMarket/data/""")
