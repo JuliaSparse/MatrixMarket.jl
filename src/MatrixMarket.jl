@@ -36,8 +36,8 @@ function mmread(filename, infoonly::Bool=false)
              throw(ParseError("Unsupported field $field (only real and complex are supported)"))
 
     symlabel = symm == "general" ? identity :
-               symm == "symmetric" ? Symmetric :
-               symm == "hermitian" ? Hermitian :
+               symm == "symmetric" ? symmetric! :
+               symm == "hermitian" ? hermitian! :
                symm == "skew-symmetric" ? skewsymmetric! :
                throw(ParseError("Unknown matrix symmetry: $symm (only general, symmetric, skew-symmetric and hermitian are supported)"))
 
@@ -83,6 +83,24 @@ function skewsymmetric!(M::AbstractMatrix)
     for i = 1:size(M,1), j = 1:size(M,2)
         if M[i,j] != 0
             M[j,i] = -M[i,j]
+        end
+    end
+    return M
+end
+
+function symmetric!(M::AbstractMatrix)
+    for i = 1:size(M,1), j = 1:size(M,2)
+        if M[i,j] != 0
+            M[j,i] = M[i,j]
+        end
+    end
+    return M
+end
+
+function hermitian!(M::AbstractMatrix)
+    for i = 1:size(M,1), j = 1:size(M,2)
+        if M[i,j] != 0
+            M[j,i] = conj(M[i,j])
         end
     end
     return M
