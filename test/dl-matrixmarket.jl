@@ -5,8 +5,10 @@
 #Convenience function to emulate the behavior of gunzip
 using GZip
 function gunzip(fname)
-    endswith(fname, ".gz") || error("gunzip: $fname: unknown suffix -- ignored")
-    destname = split(fname, ".gz")[1] #XXX potential bug, assumes that ".gz" doesn't happen in the middle of a filename
+    destname, ext = splitext(fname)
+    if ext != ".gz"
+        error("gunzip: $fname: unknown suffix -- ignored")
+    end
     open(destname, "w") do f
         GZip.open(fname) do g
             write(f, readall(g))
@@ -16,8 +18,11 @@ function gunzip(fname)
 end
 
 #Download and parse master list of matrices
-isfile("matrices.html") || download("math.nist.gov/MatrixMarket/matrices.html", "matrices.html")
-matrixmarketdata = {}
+if !isfile("matrices.html")
+    download("math.nist.gov/MatrixMarket/matrices.html", "matrices.html")
+end
+
+matrixmarketdata = []
 open("matrices.html") do f
    for line in readlines(f)
        if contains(line, """<A HREF="/MatrixMarket/data/""")
@@ -38,7 +43,9 @@ for (collectionname, setname, matrixname) in matrixmarketdata[n:n]
         gzfname = string(fn, ".mtx.gz")
         try
             download(url, gzfname)
-        catch continue end
+        catch
+            continue
+        end
         gunzip(gzfname)
     end
 end

@@ -5,6 +5,7 @@ include("dl-matrixmarket.jl")
 
 num_errors = 0
 num_pass = 0
+
 for filename in readdir()
     endswith(filename, ".mtx") || continue
     try
@@ -12,14 +13,18 @@ for filename in readdir()
         println(filename, " : ", typeof(A), "  ", size(A))
         num_pass += 1
     catch err
-	println()
-	println()
-	println("PARSE ERROR")
+        println()
+        println()
+        println("PARSE ERROR")
         println(filename, " : ", typeof(err), " : ", :msg in names(err) ? err.msg : "")
-        isa(err, ErrorException) || println(filter(x->x[1]!=symbol("???"), map(x->ccall(:jl_lookup_code_address, Any, (Ptr{Void}, Cint), x, true), catch_backtrace())))
-	println()
-	println()
-	num_errors += 1
+        if !isa(err, ErrorException)
+            println(filter(x->x[1]!=symbol("???"),
+                    map(x->ccall(:jl_lookup_code_address, Any, (Ptr{Void}, Cint), x, true),
+                    catch_backtrace())))
+        end
+        println()
+        println()
+        num_errors += 1
     end
 end
 
