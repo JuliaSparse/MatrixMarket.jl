@@ -2,7 +2,7 @@ module MatrixMarket
 
 export mmread
 
-@doc """
+"""
 ### mmread(filename, infoonly::Bool=false)
 
 Read the contents of the Matrix Market file 'filename' into a matrix,
@@ -13,7 +13,7 @@ array storage).
 If infoonly is true (default: false), only information on the size and
 structure is returned from reading the header. The actual data for the
 matrix elements are not parsed.
-"""->
+"""
 function mmread(filename, infoonly::Bool=false)
     mmfile = open(filename,"r")
     # Read first line
