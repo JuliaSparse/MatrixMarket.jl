@@ -80,7 +80,9 @@ end
 
 # Hack to represent skew-symmetric matrix as an ordinary matrix with duplicated elements
 function skewsymmetric!(M::AbstractMatrix)
-    for i = 1:size(M,1), j = 1:size(M,2)
+    m,n = size(M)
+    m == n || throw(DimensionMismatch())
+    for i=1:n, j=1:n
         if M[i,j] != 0
             M[j,i] = -M[i,j]
         end
@@ -89,7 +91,9 @@ function skewsymmetric!(M::AbstractMatrix)
 end
 
 function symmetric!(M::AbstractMatrix)
-    for i = 1:size(M,1), j = 1:size(M,2)
+    m,n = size(M)
+    m == n || throw(DimensionMismatch())
+    for i=1:n, j=1:n
         if M[i,j] != 0
             M[j,i] = M[i,j]
         end
@@ -98,7 +102,9 @@ function symmetric!(M::AbstractMatrix)
 end
 
 function hermitian!(M::AbstractMatrix)
-    for i = 1:size(M,1), j = 1:size(M,2)
+    m,n = size(M)
+    m == n || throw(DimensionMismatch())
+    for i=1:n, j=1:n
         if M[i,j] != 0
             M[j,i] = conj(M[i,j])
         end
