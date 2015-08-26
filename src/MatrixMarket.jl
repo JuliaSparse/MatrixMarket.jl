@@ -47,7 +47,7 @@ function mmread(filename, infoonly::Bool=false)
         ll = readline(mmfile)
     end
     # Read matrix dimensions (and number of entries) from first non-comment line
-    dd = map(parseint, split(ll))
+    dd = map(x->parse(Int, x), split(ll))
     if length(dd) < (rep == "coordinate" ? 3 : 2)
         throw(ParseError(string("Could not read in matrix dimensions from line: ", ll)))
     end
@@ -63,19 +63,19 @@ function mmread(filename, infoonly::Bool=false)
         xx = Array(eltype, entries)
         for i in 1:entries
             flds = split(readline(mmfile))
-            rr[i] = parseint(flds[1])
-            cc[i] = parsefloat(flds[2])
+            rr[i] = parse(Int, flds[1])
+            cc[i] = parse(Float64, flds[2])
             if eltype == Complex128
-                xx[i] = Complex128(parsefloat(flds[3]), parsefloat(flds[4]))
+                xx[i] = Complex128(parse(Float64, flds[3]), parse(Float64, flds[4]))
             elseif eltype == Float64
-                xx[i] = parsefloat(flds[3])
+                xx[i] = parse(Float64, flds[3])
             else
                 xx[i] = true
             end
         end
         return symlabel(sparse(rr, cc, xx, rows, cols))
     end
-    return symlabel(reshape([parsefloat(readline(mmfile)) for i in 1:entries], (rows,cols)))
+    return symlabel(reshape([parse(Float64, readline(mmfile)) for i in 1:entries], (rows,cols)))
 end
 
 # Hack to represent skew-symmetric matrix as an ordinary matrix with duplicated elements
