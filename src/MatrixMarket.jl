@@ -64,7 +64,7 @@ function mmread(filename, infoonly::Bool=false)
         for i in 1:entries
             flds = split(readline(mmfile))
             rr[i] = parse(Int, flds[1])
-            cc[i] = parse(Float64, flds[2])
+            cc[i] = parse(Int, flds[2])
             if eltype == Complex128
                 xx[i] = Complex128(parse(Float64, flds[3]), parse(Float64, flds[4]))
             elseif eltype == Float64
