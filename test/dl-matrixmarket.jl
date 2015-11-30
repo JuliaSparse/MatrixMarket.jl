@@ -49,4 +49,3 @@ for (collectionname, setname, matrixname) in matrixmarketdata[n:n]
         gunzip(gzfname)
     end
 end
-

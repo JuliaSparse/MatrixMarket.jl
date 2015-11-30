@@ -15,8 +15,8 @@ for filename in readdir()
     catch err
         println()
         println()
-        println("PARSE ERROR")
-        println(filename, " : ", typeof(err), " : ", :msg in names(err) ? err.msg : "")
+        println("PARSE ERROR - MMREAD")
+        println(filename, " : ", typeof(err), " : ", :msg in fieldnames(err) ? err.msg : "")
         if !isa(err, ErrorException)
             println(filter(x->x[1]!=symbol("???"),
                     map(x->ccall(:jl_lookup_code_address, Any, (Ptr{Void}, Cint), x, true),
@@ -26,6 +26,26 @@ for filename in readdir()
         println()
         num_errors += 1
     end
+end
+
+(collectionname, setname, matrixname) = rand(matrixmarketdata)
+url = "ftp://math.nist.gov/pub/MatrixMarket2/$collectionname/$setname/$matrixname.mtx.gz"
+println("testing mmget on $url")
+try
+    z = mmget(url)
+catch err
+    println()
+    println()
+    println("PARSE ERROR - MMGET")
+    println(url, " : ", typeof(err), " : ", :msg in fieldnames(err) ? err.msg : "")
+    if !isa(err, ErrorException)
+        println(filter(x->x[1]!=symbol("???"),
+                map(x->ccall(:jl_lookup_code_address, Any, (Ptr{Void}, Cint), x, true),
+                catch_backtrace())))
+    end
+    println()
+    println()
+    num_errors += 1
 end
 
 println("Summary: $num_errors parse errors in $(num_errors + num_pass) matrices ")
