@@ -1,6 +1,6 @@
 module MatrixMarket
 
-export mmread
+export mmread, mmwrite
 
 """
 ### mmread(filename, infoonly::Bool=false)
@@ -110,6 +110,45 @@ function hermitian!(M::AbstractMatrix)
         end
     end
     return M
+end
+
+"""
+### mmwrite(filename, matrix::SparseMatrixCSC)
+
+Write a sparse matrix to file 'filename'.
+"""
+function mmwrite(filename, matrix :: SparseMatrixCSC)
+  open(filename, "w") do file
+    elem = eltype(matrix) <: Bool ? "pattern" :
+           eltype(matrix) <: Integer ?  "integer" :
+           eltype(matrix) <: AbstractFloat ? "real" :
+           eltype(matrix) <: Complex ? "complex" :
+           error("Invalid matrix type")
+      sym = ishermitian(matrix) ? "hermitian" :
+            issym(matrix) ? "symmetric" :
+            "general"
+      symb = issym(matrix)
+      # write mm header
+      write(file, "%%MatrixMarket matrix coordinate $elem $sym\n")
+      # write matrix size and number of nonzeros
+      numnz = symb ? div(nnz(matrix) - size(matrix,1), 2) + size(matrix,1) :
+              nnz(matrix)
+      write(file, "$(size(matrix, 1)) $(size(matrix, 2)) $numnz\n")
+
+      rows = rowvals(matrix)
+      vals = nonzeros(matrix)
+      for i in 1:size(matrix, 1)
+          for j in nzrange(matrix, i)
+              if !symb || rows[j] <= i
+                  write(file, "$(rows[j]) $i")
+                    if elem != "pattern" # omit values on pattern matrices
+                        write(file, " $(vals[j])")
+                    end
+                  write(file, "\n")
+              end
+          end
+      end
+  end
 end
 
 end # module
