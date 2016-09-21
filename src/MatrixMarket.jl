@@ -96,7 +96,7 @@ function mmread(filename, infoonly::Bool=false)
     return symlabel(reshape([parse(Float64, readline(mmfile)) for i in 1:entries], (rows,cols)))
 end
 
-function find_splits(s :: ASCIIString, num)
+function find_splits(s :: String, num)
     splits = Array(Int, num)
     cur = 1
     in_space = s[1] == '\t' || s[1] == ' '
