@@ -8,12 +8,12 @@ num_pass = 0
 
 for filename in readdir()
     endswith(filename, ".mtx") || continue
+    new_filename = "$(filename)_"
     try
         A = MatrixMarket.mmread(filename)
         println(filename, " : ", typeof(A), "  ", size(A))
 
         # verify mmread(mmwrite(A)) == A
-        new_filename = "$(filename)_"
         MatrixMarket.mmwrite(new_filename, A)
         new_A = MatrixMarket.mmread(new_filename)
         assert(new_A == A)
@@ -32,6 +32,9 @@ for filename in readdir()
         println()
         println()
         num_errors += 1
+    finally
+        rm(filename)
+        rm(new_filename)
     end
 end
 
