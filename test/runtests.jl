@@ -11,6 +11,13 @@ for filename in readdir()
     try
         A = MatrixMarket.mmread(filename)
         println(filename, " : ", typeof(A), "  ", size(A))
+
+        # verify mmread(mmwrite(A)) == A
+        new_filename = "$(filename)_"
+        MatrixMarket.mmwrite(new_filename, A)
+        new_A = MatrixMarket.mmread(new_filename)
+        assert(new_A == A)
+
         num_pass += 1
     catch err
         println()
