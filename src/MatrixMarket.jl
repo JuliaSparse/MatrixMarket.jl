@@ -1,5 +1,7 @@
 module MatrixMarket
 
+import Compat.issymmetric
+
 export mmread, mmwrite
 
 """
