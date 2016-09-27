@@ -23,9 +23,9 @@ for filename in readdir()
         println()
         println()
         println("PARSE ERROR")
-        println(filename, " : ", typeof(err), " : ", :msg in names(err) ? err.msg : "")
+        println(filename, " : ", err)
         if !isa(err, ErrorException)
-            println(filter(x->x[1]!=symbol("???"),
+            println(filter(x->x[1]!=Symbol("???"),
                     map(x->ccall(:jl_lookup_code_address, Any, (Ptr{Void}, Cint), x, true),
                     catch_backtrace())))
         end
