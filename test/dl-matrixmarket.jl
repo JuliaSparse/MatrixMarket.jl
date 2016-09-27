@@ -32,6 +32,7 @@ open("matrices.html") do f
        end
    end
 end
+rm("matrices.html") # clean up
 
 #Download one matrix at random
 n = rand(1:length(matrixmarketdata))
@@ -47,6 +48,7 @@ for (collectionname, setname, matrixname) in matrixmarketdata[n:n]
             continue
         end
         gunzip(gzfname)
+        rm(gzfname)
     end
 end
 
