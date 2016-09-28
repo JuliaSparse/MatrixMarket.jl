@@ -175,7 +175,7 @@ function mmwrite(filename, matrix :: SparseMatrixCSC)
 
       rows = rowvals(matrix)
       vals = nonzeros(matrix)
-      for i in 1:size(matrix, 1)
+      for i in 1:size(matrix, 2)
           for j in nzrange(matrix, i)
               if !symb || rows[j] >= i
                   write(file, "$(rows[j]) $i")
