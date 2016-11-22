@@ -24,7 +24,7 @@ data.
 in coordinate format or array format. The specific type of `M` may be `Symmetric` or
 `Hermitian` depending on the symmetry information contained in the file header.
 
-    MatrixMarket.mmread("myfile.mtx", false)
+    MatrixMarket.mmread("myfile.mtx", true)
 
 Returns raw data from the file header. Does not read in the actual matrix elements
 
