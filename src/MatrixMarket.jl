@@ -61,9 +61,9 @@ function mmread(filename, infoonly::Bool=false)
             return (rows, cols, entries, rep, field, symm)
         end
         if rep == "coordinate"
-            rr = Array(Int, entries)
-            cc = Array(Int, entries)
-            xx = Array(eltype, entries)
+            rr = Vector{Int}(entries)
+            cc = Vector{Int}(entries)
+            xx = Vector{eltype}(entries)
             for i in 1:entries
                 line = readline(mmfile)
 
@@ -100,7 +100,7 @@ function mmread(filename, infoonly::Bool=false)
 end
 
 function find_splits(s :: String, num)
-    splits = Array(Int, num)
+    splits = Vector{Int}(num)
     cur = 1
     in_space = s[1] == '\t' || s[1] == ' '
     @inbounds for i in 1:length(s)
