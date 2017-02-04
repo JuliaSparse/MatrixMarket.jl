@@ -168,26 +168,26 @@ function mmwrite(filename, matrix :: SparseMatrixCSC)
       # write mm header
       write(file, "%%MatrixMarket matrix coordinate $elem $sym\n")
 
+      # only use lower triangular part of symmetric matrices
+      if symb
+          matrix = tril(matrix)
+      end
+
       # write matrix size and number of nonzeros
-      diagnnz = length(filter(x -> x != 0, diag(matrix)))
-      numnz = symb ? div(nnz(matrix) - diagnnz, 2) + diagnnz :
-              nnz(matrix)
-      write(file, "$(size(matrix, 1)) $(size(matrix, 2)) $numnz\n")
+      write(file, "$(size(matrix, 1)) $(size(matrix, 2)) $(nnz(matrix))\n")
 
       rows = rowvals(matrix)
       vals = nonzeros(matrix)
       for i in 1:size(matrix, 2)
           for j in nzrange(matrix, i)
-              if !symb || rows[j] >= i
-                  write(file, "$(rows[j]) $i")
-                    if elem == "pattern" # omit values on pattern matrices
-                    elseif elem == "complex"
-                        write(file, " $(real(vals[j])) $(imag(vals[j]))")
-                    else
-                        write(file, " $(vals[j])")
-                    end
-                  write(file, "\n")
+              write(file, "$(rows[j]) $i")
+              if elem == "pattern" # omit values on pattern matrices
+              elseif elem == "complex"
+                  write(file, " $(real(vals[j])) $(imag(vals[j]))")
+              else
+                  write(file, " $(vals[j])")
               end
+              write(file, "\n")
           end
       end
   end
