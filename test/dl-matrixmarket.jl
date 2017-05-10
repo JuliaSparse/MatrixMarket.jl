@@ -11,7 +11,7 @@ function gunzip(fname)
     end
     open(destname, "w") do f
         GZip.open(fname) do g
-            write(f, readall(g))
+            write(f, readstring(g))
         end
     end
     destname
