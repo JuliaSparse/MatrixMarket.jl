@@ -4,8 +4,10 @@ import Compat.issymmetric
 
 export mmread, mmwrite
 
+_parseint(x) = parse(Int, x)
+
 """
-### mmread(filename, infoonly::Bool=false)
+### mmread(filename, infoonly::Bool=false, retcoord::Bool=false)
 
 Read the contents of the Matrix Market file 'filename' into a matrix,
 which will be either sparse or dense, depending on the Matrix Market format
@@ -15,8 +17,11 @@ array storage).
 If infoonly is true (default: false), only information on the size and
 structure is returned from reading the header. The actual data for the
 matrix elements are not parsed.
+
+If retcoord is true (default: false), the rows, column and value vectors
+are returned, if it is a sparse matrix, along with the header information.
 """
-function mmread(filename, infoonly::Bool=false)
+function mmread(filename, infoonly::Bool=false, retcoord::Bool=false)
     open(filename,"r") do mmfile
         # Read first line
         firstline = chomp(readline(mmfile))
@@ -50,56 +55,46 @@ function mmread(filename, infoonly::Bool=false)
             ll = readline(mmfile)
         end
         # Read matrix dimensions (and number of entries) from first non-comment line
-        dd = map(x->parse(Int, x), split(ll))
+        dd = map(_parseint, split(ll))
         if length(dd) < (rep == "coordinate" ? 3 : 2)
             throw(ParseError(string("Could not read in matrix dimensions from line: ", ll)))
         end
         rows = dd[1]
         cols = dd[2]
         entries = (rep == "coordinate") ? dd[3] : (rows * cols)
-        if infoonly
-            return (rows, cols, entries, rep, field, symm)
-        end
-        if rep == "coordinate"
-            rr = Vector{Int}(entries)
-            cc = Vector{Int}(entries)
-            xx = Vector{eltype}(entries)
-            for i in 1:entries
-                line = readline(mmfile)
+        infoonly && return (rows, cols, entries, rep, field, symm)
 
-                num_splits = if eltype == Complex128
-                                 3
-                             elseif eltype == Bool
-                                 1
-                             else
-                                 2
-                             end
-                splits = find_splits(line, num_splits)
+        rep == "coordinate" ||
+            return symlabel(reshape([parse(Float64, readline(mmfile)) for i in 1:entries],
+                                    (rows,cols)))
 
-                rr[i] = parse(Int, line[1:splits[1]])
-                if eltype == Bool
-                    cc[i] = parse(Int, line[splits[1]:end])
-                else
-                    cc[i] = parse(Int, line[splits[1]:splits[2]])
-                end
-
-                if eltype == Complex128
-                    real = parse(Float64, line[splits[2]:splits[3]])
-                    imag = parse(Float64, line[splits[3]:length(line)])
-                    xx[i] = Complex128(real, imag)
-                elseif eltype == Bool
-                    xx[i] = true
-                else
-                    xx[i] = parse(eltype, line[splits[2]:length(line)])
-                end
+        rr = Vector{Int}(entries)
+        cc = Vector{Int}(entries)
+        xx = Vector{eltype}(entries)
+        for i in 1:entries
+            line = readline(mmfile)
+            splits = find_splits(line, eltype == Complex128 ? 3 : (eltype == Bool ? 1 : 2))
+            rr[i] = _parseint(line[1:splits[1]])
+            cc[i] = _parseint(eltype == Bool
+                              ? line[splits[1]:end]
+                              : line[splits[1]:splits[2]])
+            if eltype == Complex128
+                real = parse(Float64, line[splits[2]:splits[3]])
+                imag = parse(Float64, line[splits[3]:length(line)])
+                xx[i] = Complex128(real, imag)
+            elseif eltype == Bool
+                xx[i] = true
+            else
+                xx[i] = parse(eltype, line[splits[2]:length(line)])
             end
-            return symlabel(sparse(rr, cc, xx, rows, cols))
         end
-        return symlabel(reshape([parse(Float64, readline(mmfile)) for i in 1:entries], (rows,cols)))
+        (retcoord
+         ? (rr, cc, xx, rows, cols, entries, rep, field, symm)
+         : symlabel(sparse(rr, cc, xx, rows, cols)))
     end
 end
 
-function find_splits(s :: String, num)
+function find_splits(s::String, num)
     splits = Vector{Int}(num)
     cur = 1
     in_space = s[1] == '\t' || s[1] == ' '
@@ -109,9 +104,7 @@ function find_splits(s :: String, num)
                 in_space = true
                 splits[cur] = i
                 cur += 1
-                if cur > num
-                    break;
-                end
+                cur > num && break
             end
         else
             in_space = false
