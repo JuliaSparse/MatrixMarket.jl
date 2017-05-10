@@ -1,6 +1,6 @@
 # MatrixMarket
 
-[![Build Status](https://travis-ci.org/JuliaSparse/MatrixMarket.jl.png?branch=master)](https://travis-ci.org/JuliaSparse/MatrixMarket.jl)
+[![Build Status](https://travis-ci.org/JuliaSparse/MatrixMarket.jl.svg?branch=master)](https://travis-ci.org/JuliaSparse/MatrixMarket.jl)
 [![MatrixMarket](http://pkg.julialang.org/badges/MatrixMarket_0.3.svg)](http://pkg.julialang.org/?pkg=MatrixMarket&ver=0.3)
 [![MatrixMarket](http://pkg.julialang.org/badges/MatrixMarket_0.4.svg)](http://pkg.julialang.org/?pkg=MatrixMarket&ver=0.4)
 
