@@ -27,10 +27,10 @@ function mmread(filename, infoonly::Bool=false, retcoord::Bool=false)
         firstline = chomp(readline(mmfile))
         tokens = split(firstline)
         if length(tokens) != 5
-            throw(ParseError(string("Not enough words on first line: ", ll)))
+            throw(ParseError(string("Not enough words on first line: ", firstline)))
         end
         if tokens[1] != "%%MatrixMarket"
-            throw(ParseError(string("Not a valid MatrixMarket header:", ll)))
+            throw(ParseError(string("Not a valid MatrixMarket header:", firstline)))
         end
         (head1, rep, field, symm) = map(lowercase, tokens[2:5])
         if head1 != "matrix"
