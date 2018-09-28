@@ -4,6 +4,8 @@
 
 #Convenience function to emulate the behavior of gunzip
 using GZip
+using Compat
+
 function gunzip(fname)
     destname, ext = splitext(fname)
     if ext != ".gz"
@@ -11,7 +13,7 @@ function gunzip(fname)
     end
     open(destname, "w") do f
         GZip.open(fname) do g
-            write(f, readstring(g))
+            write(f, read(g, String))
         end
     end
     destname
@@ -25,7 +27,7 @@ end
 matrixmarketdata = Any[]
 open("matrices.html") do f
    for line in readlines(f)
-       if contains(line, """<A HREF="/MatrixMarket/data/""")
+       if occursin("""<A HREF="/MatrixMarket/data/""", line)
            collectionname, setname, matrixname = split(split(line, '"')[2], '/')[4:6]
            matrixname = split(matrixname, '.')[1]
            push!(matrixmarketdata, (collectionname, setname, matrixname) )

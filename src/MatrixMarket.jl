@@ -1,8 +1,13 @@
 module MatrixMarket
 
-import Compat.issymmetric
+using Compat.SparseArrays
+using Compat.LinearAlgebra
 
 export mmread, mmwrite
+
+struct ParseError
+    error :: String
+end
 
 _parseint(x) = parse(Int, x)
 
@@ -38,7 +43,7 @@ function mmread(filename, infoonly::Bool=false, retcoord::Bool=false)
         end
 
         eltype = field == "real" ? Float64 :
-                 field == "complex" ? Complex128 :
+                 field == "complex" ? ComplexF64 :
                  field == "integer" ? Int64 :
                  field == "pattern" ? Bool :
                  throw(ParseError("Unsupported field $field (only real and complex are supported)"))
@@ -68,20 +73,20 @@ function mmread(filename, infoonly::Bool=false, retcoord::Bool=false)
             return symlabel(reshape([parse(Float64, readline(mmfile)) for i in 1:entries],
                                     (rows,cols)))
 
-        rr = Vector{Int}(entries)
-        cc = Vector{Int}(entries)
-        xx = Vector{eltype}(entries)
+        rr = Vector{Int}(undef, entries)
+        cc = Vector{Int}(undef, entries)
+        xx = Vector{eltype}(undef, entries)
         for i in 1:entries
             line = readline(mmfile)
-            splits = find_splits(line, eltype == Complex128 ? 3 : (eltype == Bool ? 1 : 2))
+            splits = find_splits(line, eltype == ComplexF64 ? 3 : (eltype == Bool ? 1 : 2))
             rr[i] = _parseint(line[1:splits[1]])
             cc[i] = _parseint(eltype == Bool
                               ? line[splits[1]:end]
                               : line[splits[1]:splits[2]])
-            if eltype == Complex128
+            if eltype == ComplexF64
                 real = parse(Float64, line[splits[2]:splits[3]])
                 imag = parse(Float64, line[splits[3]:length(line)])
-                xx[i] = Complex128(real, imag)
+                xx[i] = ComplexF64(real, imag)
             elseif eltype == Bool
                 xx[i] = true
             else
@@ -95,7 +100,7 @@ function mmread(filename, infoonly::Bool=false, retcoord::Bool=false)
 end
 
 function find_splits(s::String, num)
-    splits = Vector{Int}(num)
+    splits = Vector{Int}(undef, num)
     cur = 1
     in_space = s[1] == '\t' || s[1] == ' '
     @inbounds for i in 1:length(s)
@@ -118,16 +123,16 @@ end
 function skewsymmetric!(M::AbstractMatrix)
     m,n = size(M)
     m == n || throw(DimensionMismatch())
-    return M - transpose(tril(M, -11))
+    return M .- transpose(tril(M, -11))
 end
 
 function symmetric!(M::AbstractMatrix)
     m,n = size(M)
     m == n || throw(DimensionMismatch())
     if eltype(M) == Bool
-        return M | transpose(tril(M, -1))
+        return M .| transpose(tril(M, -1))
     else
-        return M + transpose(tril(M, -1))
+        return M .+ transpose(tril(M, -1))
     end
 end
 
@@ -135,9 +140,9 @@ function hermitian!(M::AbstractMatrix)
     m,n = size(M)
     m == n || throw(DimensionMismatch())
     if eltype(M) == Bool
-        return M | conj(transpose(tril(M, -1)))
+        return M .| conj(transpose(tril(M, -1)))
     else
-        return M + conj(transpose(tril(M, -1)))
+        return M .+ conj(transpose(tril(M, -1)))
     end
 end
 
