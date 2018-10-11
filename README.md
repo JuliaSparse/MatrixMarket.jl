@@ -1,8 +1,6 @@
 # MatrixMarket
 
 [![Build Status](https://travis-ci.org/JuliaSparse/MatrixMarket.jl.svg?branch=master)](https://travis-ci.org/JuliaSparse/MatrixMarket.jl)
-[![MatrixMarket](http://pkg.julialang.org/badges/MatrixMarket_0.3.svg)](http://pkg.julialang.org/?pkg=MatrixMarket&ver=0.3)
-[![MatrixMarket](http://pkg.julialang.org/badges/MatrixMarket_0.4.svg)](http://pkg.julialang.org/?pkg=MatrixMarket&ver=0.4)
 
 Package to read matrices from files in the [Matrix Market native exchange
 format](http://math.nist.gov/MatrixMarket/formats.html#MMformat).
