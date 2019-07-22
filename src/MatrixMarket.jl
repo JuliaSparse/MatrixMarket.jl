@@ -158,8 +158,8 @@ function mmwrite(filename, matrix :: SparseMatrixCSC)
            eltype(matrix) <: AbstractFloat ? "real" :
            eltype(matrix) <: Complex ? "complex" :
            error("Invalid matrix type")
-      sym = ishermitian(matrix) ? "hermitian" :
-            issymmetric(matrix) ? "symmetric" :
+      sym = issymmetric(matrix) ? "symmetric" :
+            ishermitian(matrix) ? "hermitian" :
             "general"
 
       # write mm header
