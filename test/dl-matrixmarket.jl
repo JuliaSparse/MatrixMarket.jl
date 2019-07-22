@@ -36,9 +36,14 @@ open("matrices.html") do f
 end
 rm("matrices.html") # clean up
 
-#Download one matrix at random
+
+#Download one matrix at random plus some specifically chosen ones.
 n = rand(1:length(matrixmarketdata))
-for (collectionname, setname, matrixname) in matrixmarketdata[n:n]
+testmatrices = [ ("NEP", "mhd", "mhd1280b")
+               , ("Harwell-Boeing", "acoust", "young4c")
+               , matrixmarketdata[n]
+               ]
+for (collectionname, setname, matrixname) in testmatrices
     fn = string(collectionname, '_', setname, '_', matrixname)
     mtxfname = string(fn, ".mtx")
     if !isfile(mtxfname)
