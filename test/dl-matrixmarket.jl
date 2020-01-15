@@ -4,7 +4,6 @@
 
 #Convenience function to emulate the behavior of gunzip
 using GZip
-using Compat
 
 function gunzip(fname)
     destname, ext = splitext(fname)
