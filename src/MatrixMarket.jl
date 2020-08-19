@@ -123,7 +123,7 @@ end
 function skewsymmetric!(M::AbstractMatrix)
     m,n = size(M)
     m == n || throw(DimensionMismatch())
-    return M .- transpose(tril(M, -11))
+    return M .- transpose(tril(M, -1))
 end
 
 function symmetric!(M::AbstractMatrix)
