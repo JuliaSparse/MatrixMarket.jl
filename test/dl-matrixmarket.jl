@@ -41,6 +41,7 @@ rm("matrices.html") # clean up
 n = rand(1:length(matrixmarketdata))
 testmatrices = [ ("NEP", "mhd", "mhd1280b")
                , ("Harwell-Boeing", "acoust", "young4c")
+               , ("Harwell-Boeing", "platz", "plsk1919")
                , matrixmarketdata[n]
                ]
 for (collectionname, setname, matrixname) in testmatrices
