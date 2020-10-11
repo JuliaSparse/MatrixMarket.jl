@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/JuliaSparse/MatrixMarket.jl.svg?branch=master)](https://travis-ci.org/JuliaSparse/MatrixMarket.jl)
 
-Package to read matrices from files in the [Matrix Market native exchange
+Package to read/write matrices from/to files in the [Matrix Market native exchange
 format](http://math.nist.gov/MatrixMarket/formats.html#MMformat).
 
 The [Matrix Market](http://math.nist.gov/MatrixMarket/) is a NIST repository of
@@ -15,6 +15,8 @@ data.
 
 ## Usage
 
+### Read
+
     using MatrixMarket
     M = MatrixMarket.mmread("myfile.mtx")
 
@@ -24,5 +26,11 @@ in coordinate format or array format. The specific type of `M` may be `Symmetric
 
     MatrixMarket.mmread("myfile.mtx", true)
 
-Returns raw data from the file header. Does not read in the actual matrix elements
+Returns raw data from the file header. Does not read in the actual matrix elements.
+
+### Write
+
+    MatrixMarket.mmwrite("myfile.mtx", M)
+    
+`M` has to be a sparse matrix.
 
