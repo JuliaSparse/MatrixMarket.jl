@@ -1,7 +1,7 @@
 module MatrixMarket
 
-using Compat.SparseArrays
-using Compat.LinearAlgebra
+using SparseArrays
+using LinearAlgebra
 
 export mmread, mmwrite
 

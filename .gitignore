@@ -1,0 +1,4 @@
+**/Manifest.toml
+**/*.mtx
+**/*.mtx.gz
+**/matrices.html

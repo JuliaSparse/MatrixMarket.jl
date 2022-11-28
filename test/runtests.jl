@@ -1,7 +1,6 @@
 #Attempts to read every .mtx file in the test directory
 using MatrixMarket
-using Compat.Test
-using Compat
+using Test
 
 include("dl-matrixmarket.jl")
 
@@ -12,7 +11,7 @@ num_pass = 0
     @testset "read and write $filename" for filename in filter(t -> endswith(t, ".mtx"), readdir())
         new_filename = "$(filename)_"
         A = MatrixMarket.mmread(filename)
-        Compat.@info("$(typeof(A))  $(size(A))")
+        @info("$(typeof(A))  $(size(A))")
 
         # verify mmread(mmwrite(A)) == A
         MatrixMarket.mmwrite(new_filename, A)
