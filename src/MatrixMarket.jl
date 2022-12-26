@@ -1,4 +1,4 @@
-module MatrixMarket
+module MatrixMarket # foo bar
 
 using SparseArrays
 using LinearAlgebra
