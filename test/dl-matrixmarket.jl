@@ -2,9 +2,7 @@
 # Download and parse every file from the NIST Matrix Market #
 #############################################################
 
-#Convenience function to emulate the behavior of gunzip
-using GZip
-
+# Convenience function to emulate the behavior of gunzip
 function gunzip(fname)
     destname, ext = splitext(fname)
     if ext != ".gz"
@@ -18,9 +16,9 @@ function gunzip(fname)
     destname
 end
 
-#Download and parse master list of matrices
+# Download and parse master list of matrices
 if !isfile("matrices.html")
-    download("math.nist.gov/MatrixMarket/matrices.html", "matrices.html")
+    Downloads.download("math.nist.gov/MatrixMarket/matrices.html", "matrices.html")
 end
 
 matrixmarketdata = Any[]
@@ -36,7 +34,7 @@ end
 rm("matrices.html") # clean up
 
 
-#Download one matrix at random plus some specifically chosen ones.
+# Download one matrix at random plus some specifically chosen ones.
 n = rand(1:length(matrixmarketdata))
 testmatrices = [ ("NEP", "mhd", "mhd1280b")
                , ("Harwell-Boeing", "acoust", "young4c")
@@ -50,7 +48,7 @@ for (collectionname, setname, matrixname) in testmatrices
         url = "ftp://math.nist.gov/pub/MatrixMarket2/$collectionname/$setname/$matrixname.mtx.gz"
         gzfname = string(fn, ".mtx.gz")
         try
-            download(url, gzfname)
+            Downloads.download(url, gzfname)
         catch
             continue
         end
@@ -58,4 +56,3 @@ for (collectionname, setname, matrixname) in testmatrices
         rm(gzfname)
     end
 end
-
