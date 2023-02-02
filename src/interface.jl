@@ -1,14 +1,16 @@
 """
+    readinfo(stream)
     readinfo(file)
 
-Read header information on the size and structure from file. The actual data matrix is not
-parsed.
+Read header information on the size and structure from `file` or `stream`. The actual data
+matrix is not parsed.
 
 # Arguments
 
-- `file`: The filename or io stream.
+- `file::AbstractString`: The filename to read.
+- `stream::IO`: The stream to read.
 """
-function readinfo(filename::String)
+function readinfo(filename::AbstractString)
     mmfile = open(filename, "r")
     info = readinfo(mmfile)
     close(mmfile)
@@ -43,19 +45,21 @@ function readinfo(stream::IO)
 end
 
 """
+    mmread(stream, retcoord=false)
     mmread(filename, retcoord=false)
 
-Read the contents of the Matrix Market file `filename` into a matrix, which will be either
-sparse or dense, depending on the Matrix Market format indicated by `coordinate` (coordinate
-sparse storage), or `array` (dense array storage).
+Read the contents of the Matrix Market file `filename` or `stream` into a matrix, which will
+be either sparse or dense, depending on the Matrix Market format indicated by `coordinate`
+(coordinate sparse storage), or `array` (dense array storage).
 
 # Arguments
 
-- `filename::String`: The file to read.
+- `filename::AbstractString`: The file to read.
+- `stream::IO`: The stream to read.
 - `retcoord::Bool`: If it is `true`, the rows, column and value vectors are returned along
     with the header information.
 """
-function mmread(filename::String, retcoord::Bool=false)
+function mmread(filename::AbstractString, retcoord::Bool=false)
     stream = open(filename, "r")
     result = mmread(stream, retcoord)
     close(stream)
@@ -71,16 +75,18 @@ function mmread(stream::IO, retcoord::Bool=false)
 end
 
 """
+    mmwrite(stream, matrix)
     mmwrite(filename, matrix)
 
-Write a sparse matrix to .mtx file format.
+Write a sparse matrix to .mtx file format or `stream`.
 
 # Arguments
 
-- `filename::String`: The file to write.
+- `filename::AbstractString`: The file to write.
+- `stream::IO`: The stream to write.
 - `matrix::SparseMatrixCSC`: The sparse matrix to write.
 """
-function mmwrite(filename::String, matrix::SparseMatrixCSC)
+function mmwrite(filename::AbstractString, matrix::SparseMatrixCSC)
     stream = open(filename, "w")
     mmwrite(stream, matrix)
     close(stream)

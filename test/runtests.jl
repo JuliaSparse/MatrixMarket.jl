@@ -1,5 +1,5 @@
 using MatrixMarket
-using CodecZlib
+using CodecZlib, TranscodingStreams
 using Downloads
 using GZip
 using SparseArrays
@@ -10,7 +10,7 @@ const TEST_PATH = @__DIR__
 
 tests = [
     "mtx",
-    "dl-matrixmarket",
+    "download",
 ]
 
 @testset "MatrixMarket.jl" begin
