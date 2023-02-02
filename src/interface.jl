@@ -57,58 +57,17 @@ sparse storage), or `array` (dense array storage).
 """
 function mmread(filename::String, retcoord::Bool=false)
     stream = open(filename, "r")
-    rows, cols, entries, rep, field, symm = readinfo(stream)
-
-    T = parse_eltype(field)
-    symfunc = parse_symmetric(symm)
-
-    if rep == "coordinate"
-        rn = Vector{Int}(undef, entries)
-        cn = Vector{Int}(undef, entries)
-        vals = Vector{T}(undef, entries)
-        for i in 1:entries
-            line = readline(stream)
-            splits = find_splits(line, num_splits(T))
-            rn[i] = parse_row(line, splits)
-            cn[i] = parse_col(line, splits, T)
-            vals[i] = parse_val(line, splits, T)
-        end
-
-        result = retcoord ? (rn, cn, vals, rows, cols, entries, rep, field, symm) :
-                            symfunc(sparse(rn, cn, vals, rows, cols))
-    else
-        vals = [parse(Float64, readline(stream)) for _ in 1:entries]
-        A = reshape(vals, rows, cols)
-        result = symfunc(A)
-    end
-
+    result = mmread(stream, retcoord)
     close(stream)
 
     return result
 end
 
-num_splits(::Type{ComplexF64}) = 3
-num_splits(::Type{Bool}) = 1
-num_splits(elty) = 2
-
-function find_splits(s::String, num)
-    splits = Vector{Int}(undef, num)
-    cur = 1
-    in_space = s[1] == '\t' || s[1] == ' '
-    @inbounds for i in 1:length(s)
-        if s[i] == '\t' || s[i] == ' '
-            if !in_space
-                in_space = true
-                splits[cur] = i
-                cur += 1
-                cur > num && break
-            end
-        else
-            in_space = false
-        end
-    end
-
-    splits
+function mmread(stream::IO, retcoord::Bool=false)
+    nrow, ncol, nentry, rep, field, symm = readinfo(stream)
+    reader = MMReader(nrow, ncol, nentry, rep, field, symm)
+    readlines!(reader, stream)
+    return readout(reader, retcoord)
 end
 
 """
