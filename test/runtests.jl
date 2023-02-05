@@ -1,24 +1,19 @@
 #Attempts to read every .mtx file in the test directory
 using MatrixMarket
+using CodecZlib
+using SparseArrays
+using SHA
 using Test
 
-include("dl-matrixmarket.jl")
+const TEST_PATH = @__DIR__
 
-num_errors = 0
-num_pass = 0
+tests = [
+    "mtx",
+    "dl-matrixmarket",
+]
 
-@testset "Idempotent IO" begin
-    @testset "read and write $filename" for filename in filter(t -> endswith(t, ".mtx"), readdir())
-        new_filename = "$(filename)_"
-        A = MatrixMarket.mmread(filename)
-        @info("$(typeof(A))  $(size(A))")
-
-        # verify mmread(mmwrite(A)) == A
-        MatrixMarket.mmwrite(new_filename, A)
-        new_A = MatrixMarket.mmread(new_filename)
-        @test new_A == A
-
-        rm(filename)
-        rm(new_filename)
+@testset "MatrixMarket.jl" begin
+    for t in tests
+        include("$(t).jl")
     end
 end
