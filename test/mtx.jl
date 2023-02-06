@@ -15,6 +15,19 @@
         end
     end
 
+    function gunzip(fname)
+        destname, ext = splitext(fname)
+        if ext != ".gz"
+            error("gunzip: $fname: unknown suffix -- ignored")
+        end
+        open(destname, "w") do f
+            GZip.open(fname) do g
+                write(f, read(g, String))
+            end
+        end
+        destname
+    end
+
     @testset "read/write mtx" begin
         rows, cols, entries, rep, field, symm = mminfo(mtx_filename)
         @test rows == 11
@@ -41,5 +54,44 @@
 
         @test sha_test == sha_new
         rm(newfilename)
+    end
+
+    @testset "read/write NIST mtx files" begin
+        # Download one matrix at random plus some specifically chosen ones.
+        n = rand(1:length(NIST_FILELIST))
+        testmatrices = [
+            ("NEP", "mhd", "mhd1280b"),
+            ("Harwell-Boeing", "acoust", "young4c"),
+            ("Harwell-Boeing", "platz", "plsk1919"),
+            NIST_FILELIST[n]
+            ]
+        for (collectionname, setname, matrixname) in testmatrices
+            fn = string(collectionname, '_', setname, '_', matrixname)
+            mtxfname = string(fn, ".mtx")
+            if !isfile(mtxfname)
+                url = "ftp://math.nist.gov/pub/MatrixMarket2/$collectionname/$setname/$matrixname.mtx.gz"
+                gzfname = string(fn, ".mtx.gz")
+                try
+                    Downloads.download(url, gzfname)
+                catch
+                    continue
+                end
+                gunzip(gzfname)
+                rm(gzfname)
+            end
+        end
+
+        # verify mmread(mmwrite(A)) == A
+        for filename in filter(t -> endswith(t, ".mtx"), readdir())
+            new_filename = "$(filename)_"
+            A = MatrixMarket.mmread(filename)
+
+            MatrixMarket.mmwrite(new_filename, A)
+            new_A = MatrixMarket.mmread(new_filename)
+            @test new_A == A
+
+            rm(filename)
+            rm(new_filename)
+        end
     end
 end
