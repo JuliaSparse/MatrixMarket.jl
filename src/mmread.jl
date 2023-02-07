@@ -15,6 +15,11 @@ sparse storage), or `array` (dense array storage).
 """
 function mmread(filename::String, infoonly::Bool=false, retcoord::Bool=false)
     stream = open(filename, "r")
+
+    if endswith(filename, ".gz")
+        stream = TranscodingStream(GzipDecompressor(), stream)
+    end
+
     result = infoonly ? mminfo(stream) : mmread(stream, retcoord)
     close(stream)
 
