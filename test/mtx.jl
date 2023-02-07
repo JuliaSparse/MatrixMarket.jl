@@ -69,7 +69,7 @@
             fn = string(collectionname, '_', setname, '_', matrixname)
             mtxfname = string(fn, ".mtx")
             if !isfile(mtxfname)
-                url = "ftp://math.nist.gov/pub/MatrixMarket2/$collectionname/$setname/$matrixname.mtx.gz"
+                url = "https://math.nist.gov/pub/MatrixMarket2/$collectionname/$setname/$matrixname.mtx.gz"
                 gzfname = string(fn, ".mtx.gz")
                 try
                     Downloads.download(url, gzfname)
