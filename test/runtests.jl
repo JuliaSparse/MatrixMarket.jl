@@ -1,24 +1,39 @@
-#Attempts to read every .mtx file in the test directory
 using MatrixMarket
+using CodecZlib
+using Downloads
+using GZip
+using SparseArrays
+using SHA
 using Test
 
-include("dl-matrixmarket.jl")
+function download_nist_filelist()
+    isfile("matrices.html") ||
+        Downloads.download("math.nist.gov/MatrixMarket/matrices.html", "matrices.html")
 
-num_errors = 0
-num_pass = 0
+    matrixmarketdata = Any[]
+    open("matrices.html") do f
+        for line in readlines(f)
+            if occursin("""<A HREF="/MatrixMarket/data/""", line)
+                collectionname, setname, matrixname = split(split(line, '"')[2], '/')[4:6]
+                matrixname = split(matrixname, '.')[1]
+                push!(matrixmarketdata, (collectionname, setname, matrixname))
+            end
+        end
+    end
+    rm("matrices.html")
 
-@testset "Idempotent IO" begin
-    @testset "read and write $filename" for filename in filter(t -> endswith(t, ".mtx"), readdir())
-        new_filename = "$(filename)_"
-        A = MatrixMarket.mmread(filename)
-        @info("$(typeof(A))  $(size(A))")
+    return matrixmarketdata
+end
 
-        # verify mmread(mmwrite(A)) == A
-        MatrixMarket.mmwrite(new_filename, A)
-        new_A = MatrixMarket.mmread(new_filename)
-        @test new_A == A
+const TEST_PATH = @__DIR__
+const NIST_FILELIST = download_nist_filelist()
 
-        rm(filename)
-        rm(new_filename)
+tests = [
+    "mtx",
+]
+
+@testset "MatrixMarket.jl" begin
+    for t in tests
+        include("$(t).jl")
     end
 end
