@@ -27,35 +27,16 @@ function mmread(filename::String, infoonly::Bool=false, retcoord::Bool=false)
 end
 
 function mmread(stream::IO, infoonly::Bool=false, retcoord::Bool=false)
-    rows, cols, entries, rep, field, symm = mminfo(stream)
+    nrow, ncol, nentry, rep, field, symm = mminfo(stream)
 
-    infoonly && return rows, cols, entries, rep, field, symm
+    infoonly && return nrow, ncol, nentry, rep, field, symm
 
-    T = parse_eltype(field)
-    symfunc = parse_symmetric(symm)
-
-    if rep == "coordinate"
-        rn = Vector{Int}(undef, entries)
-        cn = Vector{Int}(undef, entries)
-        vals = Vector{T}(undef, entries)
-        for i in 1:entries
-            line = readline(stream)
-            splits = find_splits(line, num_splits(T))
-            rn[i] = parse_row(line, splits)
-            cn[i] = parse_col(line, splits, T)
-            vals[i] = parse_val(line, splits, T)
-        end
-
-        result = retcoord ? (rn, cn, vals, rows, cols, entries, rep, field, symm) :
-                            symfunc(sparse(rn, cn, vals, rows, cols))
-    else
-        vals = [parse(Float64, readline(stream)) for _ in 1:entries]
-        A = reshape(vals, rows, cols)
-        result = symfunc(A)
-    end
-
-    return result
+    reader = MMReader(nrow, ncol, nentry, rep, field, symm)
+    readlines!(reader, stream)
+    return readout(reader, retcoord)
 end
+
+## Parsing
 
 function parse_eltype(field::String)
     if field == "real"
@@ -107,6 +88,14 @@ end
 parse_val(line, splits, ::Type{Bool}) = true
 parse_val(line, splits, ::Type{T}) where {T} = parse(T, line[splits[2]:length(line)])
 
+function parseline(::Type{T}, line) where T
+    splits = find_splits(line, num_splits(T))
+    r = parse_row(line, splits)
+    c = parse_col(line, splits, T)
+    v = parse_val(line, splits, T)
+    return r, c, v
+end
+
 num_splits(::Type{ComplexF64}) = 3
 num_splits(::Type{Bool}) = 1
 num_splits(elty) = 2
@@ -129,4 +118,36 @@ function find_splits(s::String, num)
     end
 
     splits
+end
+
+## Reader
+
+struct MMReader{F <: MMFormat}
+    nrow::Int
+    ncol::Int
+    nentry::Int
+    rep::String
+    symm::String
+    format::F
+end
+
+function MMReader(nrow::Integer, ncol::Integer, nentry::Integer, rep, field, symm)
+    format = (rep == "coordinate") ? CoordinateFormat(field, nentry) : ArrayFormat(nentry)
+    return MMReader{typeof(format)}(nrow, ncol, nentry, rep, symm, format)
+end
+
+function readlines!(reader::MMReader, stream::IO)
+    for i in 1:reader.nentry
+        line = readline(stream)
+        writeat!(reader.format, i, line)
+    end
+    return reader
+end
+
+function readout(reader::MMReader, retcoord::Bool=false)
+    if retcoord
+        return readout(reader.format, reader.nrow, reader.ncol, reader.nentry, reader.symm)
+    else
+        return readout(reader.format, reader.nrow, reader.ncol, reader.symm)
+    end
 end
