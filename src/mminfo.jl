@@ -9,9 +9,14 @@ parsed.
 - `file`: The filename or io stream.
 """
 function mminfo(filename::String)
-    mmfile = open(filename, "r")
-    info = mminfo(mmfile)
-    close(mmfile)
+    stream = open(filename, "r")
+
+    if endswith(filename, ".gz")
+        stream = TranscodingStream(GzipDecompressor(), stream)
+    end
+
+    info = mminfo(stream)
+    close(stream)
     return info
 end
 

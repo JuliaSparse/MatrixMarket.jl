@@ -10,6 +10,11 @@ Write a sparse matrix to .mtx file format.
 """
 function mmwrite(filename::String, matrix::SparseMatrixCSC)
     stream = open(filename, "w")
+
+    if endswith(filename, ".gz")
+        stream = TranscodingStream(GzipCompressor(), stream)
+    end
+
     mmwrite(stream, matrix)
     close(stream)
 end
