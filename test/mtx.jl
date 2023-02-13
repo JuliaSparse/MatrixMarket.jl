@@ -118,6 +118,23 @@
         end
     end
 
+    @testset "read from online NIST mtx.gz files" begin
+        for (collectionname, setname, matrixname) in testmatrices
+            url = "https://math.nist.gov/pub/MatrixMarket2/$collectionname/$setname/$matrixname.mtx.gz"
+            mtx_filename = string(collectionname, '_', setname, '_', matrixname, ".mtx")
+            A = MatrixMarket.mmread(mtx_filename)
+
+            @testset "mmread $matrixname.mtx.gz" begin
+                # reading from .mtx and .mtx.gz must be identical
+                buffer = PipeBuffer()
+                stream = TranscodingStream(GzipDecompressor(), buffer)
+                Downloads.download(url, buffer)
+                A_gz = MatrixMarket.mmread(stream)
+                @test A_gz == A
+            end
+        end
+    end
+
     # clean up
     for filename in filter(t -> endswith(t, ".mtx"), readdir())
         rm(filename)

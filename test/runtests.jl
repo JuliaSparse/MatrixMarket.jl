@@ -4,6 +4,7 @@ using Downloads
 using GZip
 using SparseArrays
 using SHA
+using TranscodingStreams
 using Test
 
 include("test_utils.jl")
