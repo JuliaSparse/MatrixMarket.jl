@@ -37,6 +37,9 @@ formattext(::CoordinateFormat) = "coordinate"
 
 Base.Tuple(f::CoordinateFormat) = (f.rows, f.cols, f.vals)
 
+Base.:(==)(x::CoordinateFormat, y::CoordinateFormat) = (x.rows == y.rows) &&
+    (x.cols == y.cols) && (x.vals == y.vals)
+
 function writeat!(f::CoordinateFormat{T}, i::Int, line::String) where T
     f.rows[i], f.cols[i], f.vals[i] = parseline(T, line)
     return f
@@ -67,11 +70,15 @@ end
 
 ArrayFormat(nentry::Int) = ArrayFormat(Float64, nentry)
 
+ArrayFormat(A::AbstractMatrix{T}) where {T} = ArrayFormat{T}(reshape(A, :))
+
 Base.eltype(::ArrayFormat{T}) where T = T
 
 formattext(::ArrayFormat) = "array"
 
 Base.Tuple(f::ArrayFormat) = (f.vals,)
+
+Base.:(==)(x::ArrayFormat, y::ArrayFormat) = (x.vals == y.vals)
 
 function writeat!(f::ArrayFormat{T}, i::Int, line::String) where T
     f.vals[i] = parse(T, line)
