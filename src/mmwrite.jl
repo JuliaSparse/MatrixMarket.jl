@@ -83,6 +83,7 @@ end
 
 function MMWriter(A::AbstractMatrix{T}) where {T}
     nrow, ncol = size(A)
+    nentry = nrow * ncol
     vals = reshape(A, :)
     symm = generate_symmetric(A)
     format = ArrayFormat{T}(vals)

@@ -63,6 +63,11 @@ struct ArrayFormat{T} <: MMFormat
     vals::Vector{T}
 end
 
+function ArrayFormat(field, nentry::Int)
+    T = parse_eltype(field)
+    return ArrayFormat(T, nentry)
+end
+
 function ArrayFormat(::Type{T}, nentry::Int) where {T}
     vals = Vector{T}(undef, nentry)
     return ArrayFormat{T}(vals)

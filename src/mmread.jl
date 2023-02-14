@@ -132,7 +132,8 @@ struct MMReader{F <: MMFormat}
 end
 
 function MMReader(nrow::Integer, ncol::Integer, nentry::Integer, rep, field, symm)
-    format = (rep == "coordinate") ? CoordinateFormat(field, nentry) : ArrayFormat(nentry)
+    @assert nentry <= nrow * ncol "given nentry ($nentry) is greater than the product of nrow and ncol ($(nrow * ncol))"
+    format = (rep == "coordinate") ? CoordinateFormat(field, nentry) : ArrayFormat(field, nentry)
     return MMReader{typeof(format)}(nrow, ncol, nentry, rep, symm, format)
 end
 
