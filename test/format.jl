@@ -25,6 +25,7 @@
 
         f = MatrixMarket.ArrayFormat(vals)
         @test MatrixMarket.ArrayFormat(A) == f
+        @test eltype(MatrixMarket.ArrayFormat(length(vals))) == Float64
         @test length(f) == length(vals)
         @test eltype(f) == T
         @test MatrixMarket.formattext(f) == "array"

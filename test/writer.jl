@@ -20,4 +20,6 @@
     @test writer.format isa MatrixMarket.ArrayFormat
     @test MatrixMarket.header(writer) == "%%MatrixMarket matrix array complex general"
     @test MatrixMarket.sizetext(writer) == "$(size(A, 1)) $(size(A, 2)) $(length(A))"
+
+    @test_throws ErrorException MatrixMarket.generate_eltype(String)
 end
