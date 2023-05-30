@@ -1,7 +1,7 @@
 name = "MatrixMarket"
 uuid = "4d4711f2-db25-561a-b6b3-d35e7d4047d3"
 authors = ["Tristan Konolige <tristan.konolige@gmail.com>"]
-version = "0.4.0"
+version = "0.5.0"
 
 [deps]
 CodecZlib = "944b1d66-785c-5afd-91f1-9de20f533193"
