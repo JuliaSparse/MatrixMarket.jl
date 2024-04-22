@@ -17,7 +17,7 @@ LinearAlgebra = "^1"
 SparseArrays = "^1"
 Downloads = "^1"
 Test = "^1"
-SHA = "0.7"
+SHA = "0.7, 1"
 GZip = "0.5, 0.6"
 
 [extras]
