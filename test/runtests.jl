@@ -4,6 +4,7 @@ using Downloads
 using GZip
 using SparseArrays
 using SHA
+using TranscodingStreams
 using Test
 
 include("test_utils.jl")
@@ -13,6 +14,9 @@ const NIST_FILELIST = download_nist_filelist()
 
 tests = [
     "mtx",
+    "reader",
+    "writer",
+    "format",
 ]
 
 @testset "MatrixMarket.jl" begin
