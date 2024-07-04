@@ -20,7 +20,7 @@ function mmwrite(filename::String, matrix::SparseMatrixCSC)
 end
 
 function mmwrite(stream::IO, matrix::SparseMatrixCSC)
-    nl = get_newline()
+    nl = "\n"
     elem = generate_eltype(eltype(matrix))
     sym = generate_symmetric(matrix)
 
@@ -62,20 +62,12 @@ function generate_symmetric(m::AbstractMatrix)
 end
 
 function generate_entity(i, j, rows, vals, kind::String)
-    nl = get_newline()
+    nl = "\n"
     if kind == "pattern"
         return "$(rows[j]) $i$nl"
     elseif kind == "complex"
         return "$(rows[j]) $i $(real(vals[j])) $(imag(vals[j]))$nl"
     else
         return "$(rows[j]) $i $(vals[j])$nl"
-    end
-end
-
-function get_newline()
-    if Sys.iswindows()
-        return "\r\n"
-    else
-        return "\n"
     end
 end

@@ -1,11 +1,3 @@
-function get_newline()
-    if Sys.iswindows()
-        return "\r\n"
-    else
-        return "\n"
-    end
-end
-
 function gunzip(fname)
     destname, ext = splitext(fname)
     if ext != ".gz"
