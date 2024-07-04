@@ -55,8 +55,7 @@
         mmwrite(newfilename, res)
 
         stream = GzipDecompressorStream(open(gz_filename))
-        adjusted_content = replace(read(stream, String), "\n" => get_newline())
-        sha_test = bytes2hex(sha256(adjusted_content))
+        sha_test = bytes2hex(sha256(read(stream, String)))
         close(stream)
 
         stream = GzipDecompressorStream(open(newfilename))
