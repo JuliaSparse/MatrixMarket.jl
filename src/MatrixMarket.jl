@@ -3,7 +3,7 @@ module MatrixMarket
 using SparseArrays
 using LinearAlgebra
 
-using TranscodingStreams, CodecZlib
+using CodecZlib
 
 export mmread, mmwrite, mminfo
 

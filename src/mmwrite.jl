@@ -12,7 +12,7 @@ function mmwrite(filename::String, matrix::SparseMatrixCSC)
     stream = open(filename, "w")
 
     if endswith(filename, ".gz")
-        stream = TranscodingStream(GzipCompressor(), stream)
+        stream = GzipCompressorStream(stream)
     end
 
     mmwrite(stream, matrix)

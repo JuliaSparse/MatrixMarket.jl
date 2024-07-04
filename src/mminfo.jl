@@ -12,7 +12,7 @@ function mminfo(filename::String)
     stream = open(filename, "r")
 
     if endswith(filename, ".gz")
-        stream = TranscodingStream(GzipDecompressor(), stream)
+        stream = GzipDecompressorStream(stream)
     end
 
     info = mminfo(stream)
