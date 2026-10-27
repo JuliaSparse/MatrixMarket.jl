@@ -11,7 +11,6 @@ SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 [compat]
 CodecZlib = "0.7"
 Downloads = "^1"
-GZip = "0.5, 0.6"
 LinearAlgebra = "^1"
 SHA = "0.7, 1"
 SparseArrays = "^1"
@@ -20,9 +19,8 @@ julia = "1"
 
 [extras]
 Downloads = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
-GZip = "92fee26a-97fe-5a0c-ad85-20a5f3185b63"
 SHA = "ea8e919c-243c-51af-8825-aaa63cd721ce"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Downloads", "GZip", "SHA", "Test"]
+test = ["Downloads", "SHA", "Test"]

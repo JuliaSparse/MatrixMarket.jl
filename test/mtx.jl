@@ -102,7 +102,7 @@
 
     # clean up
     for filename in filter(t -> endswith(t, ".mtx"), readdir())
-        rm(filename)
-        rm(filename * ".gz")
+        rm(filename; force=true)
+        rm(filename * ".gz"; force=true)
     end
 end
