@@ -41,7 +41,7 @@
 
     @testset "parse error propagates" begin
         path = writefile("bad.mtx", "%%MatrixMarket matrix coordinate real general\n2 2 1\n1 1 x\n")
-        @test_throws ArgumentError mmread(path)
+        @test_throws MatrixMarket.FileFormatException mmread(path)
     end
 
     @testset "complex symmetric" begin
