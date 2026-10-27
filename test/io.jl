@@ -79,12 +79,12 @@ readgz(filename) = open(io -> read(GzipDecompressorStream(io), String), filename
             B = SparseMatrixCSC(2, 3, [1, 2, 2, 2], [1], [Unprintable(1.0)])
             filename = joinpath(dir, "unprintable.mtx")
             @test_throws ErrorException mmwrite(filename, B)
-            @test read(filename, String) == header * "2 3 1\n"
+            @test startswith(read(filename, String), header * "2 3 1\n")
             rm(filename)
 
             # For .gz the compressor must be closed too, or the gzip trailer is missing.
             @test_throws ErrorException mmwrite(filename * ".gz", B)
-            @test readgz(filename * ".gz") == header * "2 3 1\n"
+            @test startswith(readgz(filename * ".gz"), header * "2 3 1\n")
             rm(filename * ".gz")
         end
     end

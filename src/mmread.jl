@@ -34,22 +34,19 @@ function mmread(stream::IO, infoonly::Bool=false, retcoord::Bool=false)
         throw(FileFormatException("A $symm matrix must be square, got $rows×$cols."))
     end
 
+    # Read the data section at once and parse it in place, instead of allocating a line per entry.
+    data = DataReader(String(read(stream)), 1)
+
     if rep == "coordinate"
         rn = Vector{Int}(undef, entries)
         cn = Vector{Int}(undef, entries)
         vals = Vector{T}(undef, entries)
-        for i in 1:entries
-            line = readline(stream)
-            splits = find_splits(line, num_splits(T))
-            rn[i] = parse_row(line, splits)
-            cn[i] = parse_col(line, splits, T)
-            vals[i] = parse_val(line, splits, T)
-        end
+        read_coordinates!(data, rn, cn, vals)
 
         result = retcoord ? (rn, cn, vals, rows, cols, entries, rep, field, symm) :
                             symfunc(sparse(rn, cn, vals, rows, cols))
     else
-        A = read_array(stream, array_eltype(field), rows, cols, symm)
+        A = read_array(data, array_eltype(field), rows, cols, symm)
         result = symfunc(A)
     end
 
@@ -111,61 +108,115 @@ function skewsymmetrize!(M::AbstractMatrix)
     return M
 end
 
+# A separate function so the loop is compiled for the concrete element type `T`.
+function read_coordinates!(data, rn, cn, vals::Vector{T}) where {T}
+    for i in eachindex(rn, cn, vals)
+        rn[i] = read_int(data, true)
+        cn[i] = read_int(data, false)
+        vals[i] = read_val(data, T)
+        end_line!(data)
+    end
+    return rn, cn, vals
+end
+
 # Read the column-major values of a dense array. Symmetric and Hermitian arrays store the lower
 # triangle including the diagonal, skew-symmetric arrays the strictly lower triangle.
-function read_array(stream::IO, ::Type{T}, rows, cols, symm) where {T}
+function read_array(data, ::Type{T}, rows, cols, symm) where {T}
     A = zeros(T, rows, cols)
     for j in 1:cols
         first_row = symm == "general" ? 1 : symm == "skew-symmetric" ? j + 1 : j
         for i in first_row:rows
-            A[i, j] = parse_array_val(readline(stream), T)
+            A[i, j] = T <: Complex ? read_val(data, T, true) : read_float(data, true)
+            end_line!(data)
         end
     end
     return A
 end
 
-function parse_array_val(line, ::Type{T}) where {T}
-    tokens = split(line)
-    n = T <: Complex ? 2 : 1
-    length(tokens) == n ||
-        throw(FileFormatException("Expected $n value(s) on array line, got: $(repr(line))"))
-    return n == 2 ? T(parse(Float64, tokens[1]), parse(Float64, tokens[2])) : parse(T, tokens[1])
+# Cursor over the data section of a file. Each entry is on its own line: its first token may
+# follow blank lines, the rest must be on the same line.
+mutable struct DataReader
+    s::String
+    pos::Int
 end
 
-parse_row(line, splits) = parse(Int, line[1:splits[1]])
+isblank(c::UInt8) = c == UInt8(' ') || c == UInt8('\t') || c == UInt8('\r')
 
-parse_col(line, splits, ::Type{Bool}) = parse(Int, line[splits[1]:end])
-parse_col(line, splits, eltype) = parse(Int, line[splits[1]:splits[2]])
-
-function parse_val(line, splits, ::Type{ComplexF64})
-    real = parse(Float64, line[splits[2]:splits[3]])
-    imag = parse(Float64, line[splits[3]:length(line)])
-    return ComplexF64(real, imag)
-end
-
-parse_val(line, splits, ::Type{Bool}) = true
-parse_val(line, splits, ::Type{T}) where {T} = parse(T, line[splits[2]:length(line)])
-
-num_splits(::Type{ComplexF64}) = 3
-num_splits(::Type{Bool}) = 1
-num_splits(elty) = 2
-
-function find_splits(s::String, num)
-    splits = Vector{Int}(undef, num)
-    cur = 1
-    in_space = s[1] == '\t' || s[1] == ' '
-    @inbounds for i in 1:length(s)
-        if s[i] == '\t' || s[i] == ' '
-            if !in_space
-                in_space = true
-                splits[cur] = i
-                cur += 1
-                cur > num && break
-            end
-        else
-            in_space = false
+# Return the byte range of the next token.
+function next_token(data::DataReader, first::Bool)
+    s, n, i = data.s, ncodeunits(data.s), data.pos
+    @inbounds while i <= n
+        c = codeunit(s, i)
+        if c == UInt8('\n')
+            first || break
+        elseif !isblank(c)
+            break
         end
+        i += 1
     end
-
-    splits
+    if i > n || codeunit(s, i) == UInt8('\n')
+        throw(FileFormatException(first ? "Unexpected end of file: fewer entries than declared" :
+                                          "Missing value on line: $(repr(current_line(data)))"))
+    end
+    j = i
+    @inbounds while j <= n && !isblank(codeunit(s, j)) && codeunit(s, j) != UInt8('\n')
+        j += 1
+    end
+    data.pos = j
+    return i, j - 1
 end
+
+# Skip to the start of the next line, which must contain only whitespace before it.
+function end_line!(data::DataReader)
+    s, n, i = data.s, ncodeunits(data.s), data.pos
+    @inbounds while i <= n && isblank(codeunit(s, i))
+        i += 1
+    end
+    if i <= n && codeunit(s, i) != UInt8('\n')
+        throw(FileFormatException("Too many values on line: $(repr(current_line(data)))"))
+    end
+    data.pos = i + 1
+    return data
+end
+
+function current_line(data::DataReader)
+    s, p = data.s, min(data.pos, ncodeunits(data.s))
+    a = something(findprev(==(UInt8('\n')), codeunits(s), p - 1), 0) + 1
+    b = something(findnext(==(UInt8('\n')), codeunits(s), p), ncodeunits(s) + 1) - 1
+    return SubString(s, a, b)
+end
+
+invalid_number(s, a, b) = FileFormatException("Invalid number: $(repr(SubString(s, a, b)))")
+
+function read_int(data::DataReader, first::Bool)
+    a, b = next_token(data, first)
+    s = data.s
+    # Plain decimal digits are by far the common case; anything else falls back to `tryparse`.
+    if b - a < 18
+        v = 0
+        @inbounds for k in a:b
+            d = codeunit(s, k) - UInt8('0')
+            d > 9 && @goto fallback
+            v = 10v + d
+        end
+        return v
+    end
+    @label fallback
+    v = tryparse(Int, SubString(s, a, b))
+    v === nothing && throw(invalid_number(s, a, b))
+    return v
+end
+
+function read_float(data::DataReader, first::Bool)
+    a, b = next_token(data, first)
+    # Base's parser is correctly rounded and does not copy the `SubString`.
+    v = tryparse(Float64, SubString(data.s, a, b))
+    v === nothing && throw(invalid_number(data.s, a, b))
+    return v
+end
+
+read_val(data, ::Type{Bool}) = true
+read_val(data, ::Type{Int64}) = read_int(data, false)
+read_val(data, ::Type{Float64}) = read_float(data, false)
+read_val(data, ::Type{ComplexF64}, first::Bool=false) =
+    ComplexF64(read_float(data, first), read_float(data, false))
