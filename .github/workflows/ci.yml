@@ -26,6 +26,10 @@ jobs:
         version: ['1']
         os: [ubuntu-latest, macOS-latest, windows-latest]
         allow_failure: [false]
+        include:
+          - version: 'min'
+            os: ubuntu-latest
+            allow_failure: false
     steps:
       - uses: actions/checkout@v7
       - uses: julia-actions/setup-julia@v3

@@ -1,7 +1,6 @@
 using MatrixMarket
 using CodecZlib
 using Downloads
-using GZip
 using SparseArrays
 using SHA
 using Test
