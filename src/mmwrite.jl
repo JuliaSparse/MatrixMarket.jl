@@ -1,22 +1,28 @@
 """
     mmwrite(filename, matrix)
 
-Write a sparse matrix to .mtx file format.
+Write a sparse matrix to .mtx file format. If `filename` ends in `.gz`, the output is
+gzip-compressed.
 
 # Arguments
 
-- `filename::String`: The file to write.
+- `filename::AbstractString`: The file to write.
 - `matrix::SparseMatrixCSC`: The sparse matrix to write.
 """
-function mmwrite(filename::String, matrix::SparseMatrixCSC)
-    stream = open(filename, "w")
-
-    if endswith(filename, ".gz")
-        stream = GzipCompressorStream(stream)
+function mmwrite(filename::AbstractString, matrix::SparseMatrixCSC)
+    open(filename, "w") do io
+        if endswith(filename, ".gz")
+            # Closing the compressor flushes the gzip trailer; it also closes `io`.
+            stream = GzipCompressorStream(io)
+            try
+                mmwrite(stream, matrix)
+            finally
+                close(stream)
+            end
+        else
+            mmwrite(io, matrix)
+        end
     end
-
-    mmwrite(stream, matrix)
-    close(stream)
 end
 
 function mmwrite(stream::IO, matrix::SparseMatrixCSC)
@@ -28,7 +34,7 @@ function mmwrite(stream::IO, matrix::SparseMatrixCSC)
     write(stream, "%%MatrixMarket matrix coordinate $elem $sym$nl")
 
     # only use lower triangular part of symmetric and Hermitian matrices
-    if issymmetric(matrix) || ishermitian(matrix)
+    if sym != "general"
         matrix = tril(matrix)
     end
 
