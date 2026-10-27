@@ -1,7 +1,7 @@
 name = "MatrixMarket"
 uuid = "4d4711f2-db25-561a-b6b3-d35e7d4047d3"
 authors = ["Tristan Konolige <tristan.konolige@gmail.com>"]
-version = "0.5.2"
+version = "0.5.3"
 
 [deps]
 CodecZlib = "944b1d66-785c-5afd-91f1-9de20f533193"
@@ -9,12 +9,12 @@ LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 
 [compat]
-CodecZlib = "0.7"
-Downloads = "^1"
-LinearAlgebra = "^1"
+CodecZlib = "0.7.9"
+Downloads = "1"
+LinearAlgebra = "1"
 SHA = "0.7, 1"
-SparseArrays = "^1"
-Test = "^1"
+SparseArrays = "1"
+Test = "1"
 julia = "1.6"
 
 [extras]
