@@ -104,3 +104,9 @@ using CodecZlib, Downloads
 url = "https://math.nist.gov/pub/MatrixMarket2/Harwell-Boeing/platz/plsk1919.mtx.gz"
 M = mmread(GzipDecompressorStream(seekstart(Downloads.download(url, IOBuffer()))))
 ```
+
+## See also
+
+[MatrixDepot.jl](https://github.com/JuliaLinearAlgebra/MatrixDepot.jl) downloads and caches
+matrices by name from the [SuiteSparse Matrix Collection](https://sparse.tamu.edu/) and the
+NIST Matrix Market, e.g. `mdopen("HB/1138_bus").A`.
