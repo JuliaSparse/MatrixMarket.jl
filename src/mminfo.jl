@@ -13,8 +13,13 @@ mminfo(filename::AbstractString) = open_mm(mminfo, filename)
 # Open `filename` for reading, decompressing it if it ends in `.gz`, and pass the stream to `f`.
 function open_mm(f, filename::AbstractString)
     open(filename, "r") do io
-        stream = endswith(filename, ".gz") ? GzipDecompressorStream(io) : io
-        f(stream)
+        endswith(filename, ".gz") || return f(io)
+        stream = GzipDecompressorStream(io)
+        try
+            return f(stream)
+        finally
+            close(stream)
+        end
     end
 end
 
