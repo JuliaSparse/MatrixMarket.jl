@@ -5,25 +5,21 @@ Read the contents of the Matrix Market file `filename` into a matrix, which will
 sparse or dense, depending on the Matrix Market format indicated by `coordinate` (coordinate
 sparse storage), or `array` (dense array storage).
 
+Files whose name ends in `.gz` are decompressed. Matrices with `symmetric`, `hermitian` or
+`skew-symmetric` symmetry are expanded from the stored lower triangle. Dense arrays are read
+as `Matrix{Float64}` (`real` and `integer` fields) or `Matrix{ComplexF64}` (`complex` field).
+
 # Arguments
 
-- `filename::String`: The file to read.
+- `filename::AbstractString`: The file to read. An `IO` stream can be passed instead.
 - `infoonly::Bool=false`: Only information on the size and structure is returned from
     reading the header. The actual data for the matrix elements are not parsed.
-- `retcoord::Bool`: If it is `true`, the rows, column and value vectors are returned along
-    with the header information.
+- `retcoord::Bool=false`: If it is `true`, the rows, column and value vectors are returned
+    along with the header information for `coordinate` files, as
+    `(rows, cols, vals, nrows, ncols, entries, rep, field, symm)`. Symmetry is not expanded.
 """
-function mmread(filename::String, infoonly::Bool=false, retcoord::Bool=false)
-    stream = open(filename, "r")
-
-    if endswith(filename, ".gz")
-        stream = GzipDecompressorStream(stream)
-    end
-
-    result = infoonly ? mminfo(stream) : mmread(stream, retcoord)
-    close(stream)
-
-    return result
+function mmread(filename::AbstractString, infoonly::Bool=false, retcoord::Bool=false)
+    return open_mm(stream -> mmread(stream, infoonly, retcoord), filename)
 end
 
 function mmread(stream::IO, infoonly::Bool=false, retcoord::Bool=false)
@@ -33,6 +29,10 @@ function mmread(stream::IO, infoonly::Bool=false, retcoord::Bool=false)
 
     T = parse_eltype(field)
     symfunc = parse_symmetric(symm)
+
+    if symm != "general" && rows != cols
+        throw(FileFormatException("A $symm matrix must be square, got $rows×$cols."))
+    end
 
     if rep == "coordinate"
         rn = Vector{Int}(undef, entries)
@@ -49,8 +49,7 @@ function mmread(stream::IO, infoonly::Bool=false, retcoord::Bool=false)
         result = retcoord ? (rn, cn, vals, rows, cols, entries, rep, field, symm) :
                             symfunc(sparse(rn, cn, vals, rows, cols))
     else
-        vals = [parse(Float64, readline(stream)) for _ in 1:entries]
-        A = reshape(vals, rows, cols)
+        A = read_array(stream, array_eltype(field), rows, cols, symm)
         result = symfunc(A)
     end
 
@@ -71,10 +70,23 @@ function parse_eltype(field::String)
     end
 end
 
+# Dense arrays keep reading integers as Float64.
+function array_eltype(field::String)
+    if field == "real" || field == "integer"
+        return Float64
+    elseif field == "complex"
+        return ComplexF64
+    else
+        throw(FileFormatException("Field $field is not supported for array format."))
+    end
+end
+
 function parse_symmetric(symm::String)
     if symm == "general"
         return identity
-    elseif symm == "symmetric" || symm == "hermitian"
+    elseif symm == "symmetric"
+        return symmetrize!
+    elseif symm == "hermitian"
         return hermitianize!
     elseif symm == "skew-symmetric"
         return skewsymmetrize!
@@ -83,14 +95,41 @@ function parse_symmetric(symm::String)
     end
 end
 
+# In-place broadcasting preserves the element type, e.g. `Bool` for pattern matrices.
+function symmetrize!(M::AbstractMatrix)
+    M .+= transpose(tril(M, -1))
+    return M
+end
+
 function hermitianize!(M::AbstractMatrix)
-    M .+= tril(M, -1)'
+    M .+= adjoint(tril(M, -1))
     return M
 end
 
 function skewsymmetrize!(M::AbstractMatrix)
-    M .-= tril(M, -1)'
+    M .-= transpose(tril(M, -1))
     return M
+end
+
+# Read the column-major values of a dense array. Symmetric and Hermitian arrays store the lower
+# triangle including the diagonal, skew-symmetric arrays the strictly lower triangle.
+function read_array(stream::IO, ::Type{T}, rows, cols, symm) where {T}
+    A = zeros(T, rows, cols)
+    for j in 1:cols
+        first_row = symm == "general" ? 1 : symm == "skew-symmetric" ? j + 1 : j
+        for i in first_row:rows
+            A[i, j] = parse_array_val(readline(stream), T)
+        end
+    end
+    return A
+end
+
+function parse_array_val(line, ::Type{T}) where {T}
+    tokens = split(line)
+    n = T <: Complex ? 2 : 1
+    length(tokens) == n ||
+        throw(FileFormatException("Expected $n value(s) on array line, got: $(repr(line))"))
+    return n == 2 ? T(parse(Float64, tokens[1]), parse(Float64, tokens[2])) : parse(T, tokens[1])
 end
 
 parse_row(line, splits) = parse(Int, line[1:splits[1]])
