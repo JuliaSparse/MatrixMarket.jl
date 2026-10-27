@@ -1,6 +1,7 @@
 # MatrixMarket
 
-[![Build Status](https://travis-ci.org/JuliaSparse/MatrixMarket.jl.svg?branch=master)](https://travis-ci.org/JuliaSparse/MatrixMarket.jl)
+[![CI](https://github.com/JuliaSparse/MatrixMarket.jl/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/JuliaSparse/MatrixMarket.jl/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/JuliaSparse/MatrixMarket.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaSparse/MatrixMarket.jl)
 
 Package to read/write matrices from/to files in the [Matrix Market native exchange
 format](http://math.nist.gov/MatrixMarket/formats.html#MMformat).
