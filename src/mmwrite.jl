@@ -45,8 +45,7 @@ function mmwrite(stream::IO, matrix::SparseMatrixCSC)
     vals = nonzeros(matrix)
     for i in 1:size(matrix, 2)
         for j in nzrange(matrix, i)
-            entity = generate_entity(i, j, rows, vals, elem)
-            write(stream, entity)
+            write_entity(stream, i, j, rows, vals, elem)
         end
     end
 end
@@ -67,13 +66,13 @@ function generate_symmetric(m::AbstractMatrix)
     end
 end
 
-function generate_entity(i, j, rows, vals, kind::String)
-    nl = "\n"
+# Print each entry straight to the stream instead of building an intermediate string.
+function write_entity(stream::IO, i, j, rows, vals, kind::String)
     if kind == "pattern"
-        return "$(rows[j]) $i$nl"
+        print(stream, rows[j], ' ', i, '\n')
     elseif kind == "complex"
-        return "$(rows[j]) $i $(real(vals[j])) $(imag(vals[j]))$nl"
+        print(stream, rows[j], ' ', i, ' ', real(vals[j]), ' ', imag(vals[j]), '\n')
     else
-        return "$(rows[j]) $i $(vals[j])$nl"
+        print(stream, rows[j], ' ', i, ' ', vals[j], '\n')
     end
 end

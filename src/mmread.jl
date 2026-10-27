@@ -125,26 +125,34 @@ function read_array(stream::IO, ::Type{T}, rows, cols, symm) where {T}
 end
 
 function parse_array_val(line, ::Type{T}) where {T}
-    tokens = split(line)
-    n = T <: Complex ? 2 : 1
-    length(tokens) == n ||
-        throw(FileFormatException("Expected $n value(s) on array line, got: $(repr(line))"))
-    return n == 2 ? T(parse(Float64, tokens[1]), parse(Float64, tokens[2])) : parse(T, tokens[1])
+    # `tryparse` allows surrounding whitespace and returns `nothing` for zero or several values.
+    v = tryparse(T, line)
+    v === nothing && throw(FileFormatException("Expected 1 value on array line, got: $(repr(line))"))
+    return v
 end
 
-parse_row(line, splits) = parse(Int, line[1:splits[1]])
+function parse_array_val(line, ::Type{T}) where {T<:Complex}
+    tokens = split(line)
+    length(tokens) == 2 ||
+        throw(FileFormatException("Expected 2 values on array line, got: $(repr(line))"))
+    return T(parse(Float64, tokens[1]), parse(Float64, tokens[2]))
+end
 
-parse_col(line, splits, ::Type{Bool}) = parse(Int, line[splits[1]:end])
-parse_col(line, splits, eltype) = parse(Int, line[splits[1]:splits[2]])
+# `SubString`s avoid copying each field; the split positions are ASCII whitespace, so they
+# are valid string indices.
+parse_row(line, splits) = parse(Int, SubString(line, 1, splits[1]))
+
+parse_col(line, splits, ::Type{Bool}) = parse(Int, SubString(line, splits[1]))
+parse_col(line, splits, eltype) = parse(Int, SubString(line, splits[1], splits[2]))
 
 function parse_val(line, splits, ::Type{ComplexF64})
-    real = parse(Float64, line[splits[2]:splits[3]])
-    imag = parse(Float64, line[splits[3]:length(line)])
+    real = parse(Float64, SubString(line, splits[2], splits[3]))
+    imag = parse(Float64, SubString(line, splits[3]))
     return ComplexF64(real, imag)
 end
 
 parse_val(line, splits, ::Type{Bool}) = true
-parse_val(line, splits, ::Type{T}) where {T} = parse(T, line[splits[2]:length(line)])
+parse_val(line, splits, ::Type{T}) where {T} = parse(T, SubString(line, splits[2]))
 
 num_splits(::Type{ComplexF64}) = 3
 num_splits(::Type{Bool}) = 1
@@ -153,9 +161,10 @@ num_splits(elty) = 2
 function find_splits(s::String, num)
     splits = Vector{Int}(undef, num)
     cur = 1
-    in_space = s[1] == '\t' || s[1] == ' '
-    @inbounds for i in 1:length(s)
-        if s[i] == '\t' || s[i] == ' '
+    isblank(c) = c == UInt8('\t') || c == UInt8(' ')
+    in_space = isblank(codeunit(s, 1))
+    @inbounds for i in 1:ncodeunits(s)
+        if isblank(codeunit(s, i))
             if !in_space
                 in_space = true
                 splits[cur] = i
