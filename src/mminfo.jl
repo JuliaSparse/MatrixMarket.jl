@@ -8,16 +8,14 @@ parsed.
 
 - `file`: The filename or io stream.
 """
-function mminfo(filename::String)
-    stream = open(filename, "r")
+mminfo(filename::AbstractString) = open_mm(mminfo, filename)
 
-    if endswith(filename, ".gz")
-        stream = GzipDecompressorStream(stream)
+# Open `filename` for reading, decompressing it if it ends in `.gz`, and pass the stream to `f`.
+function open_mm(f, filename::AbstractString)
+    open(filename, "r") do io
+        stream = endswith(filename, ".gz") ? GzipDecompressorStream(io) : io
+        f(stream)
     end
-
-    info = mminfo(stream)
-    close(stream)
-    return info
 end
 
 function mminfo(stream::IO)
@@ -36,10 +34,10 @@ function mminfo(stream::IO)
         throw(FileFormatException("Unknown MatrixMarket data type: $head1 (only `matrix` is supported)"))
     end
 
-    dimline = readline(stream)
-
     # Skip all comments and empty lines
-    while length(chomp(dimline)) == 0 || (length(dimline) > 0 && dimline[1] == '%')
+    dimline = ""
+    while isempty(strip(dimline)) || startswith(dimline, '%')
+        eof(stream) && throw(FileFormatException("Unexpected end of file while reading the matrix dimensions"))
         dimline = readline(stream)
     end
     rows, cols, entries = parse_dimension(dimline, rep)
@@ -53,7 +51,7 @@ end
 
 Base.showerror(io::IO, e::FileFormatException) = print(io, e.msg)
 
-function parse_dimension(line::String, rep::String)
+function parse_dimension(line::AbstractString, rep::AbstractString)
     dims = map(x -> parse(Int, x), split(line))
 
     if length(dims) < (rep == "coordinate" ? 3 : 2)
