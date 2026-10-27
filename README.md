@@ -96,3 +96,11 @@ M = open(mmread, "myfile.mtx")
 info = open(mminfo, "myfile.mtx")
 open(io -> mmwrite(io, M), "myfile.mtx", "w")
 ```
+
+For example, to read a compressed matrix directly from the NIST collection:
+
+```julia
+using CodecZlib, Downloads
+url = "https://math.nist.gov/pub/MatrixMarket2/Harwell-Boeing/platz/plsk1919.mtx.gz"
+M = mmread(GzipDecompressorStream(seekstart(Downloads.download(url, IOBuffer()))))
+```
