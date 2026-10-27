@@ -31,7 +31,7 @@ function mminfo(stream::IO)
 
     tokens = split(firstline)
     if length(tokens) != 5
-        throw(FileFormatException("Not enough words on first line, got $(length(tokens)) words"))
+        throw(FileFormatException("Expected 5 words on first line (`%%MatrixMarket matrix <format> <field> <symmetry>`), got $(length(tokens)) words"))
     end
 
     (head1, rep, field, symm) = map(lowercase, tokens[2:5])

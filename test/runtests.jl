@@ -13,6 +13,7 @@ const NIST_FILELIST = download_nist_filelist()
 tests = [
     "mtx",
     "read",
+    "io",
 ]
 
 @testset "MatrixMarket.jl" begin
